@@ -13,7 +13,7 @@ namespace nano{
 		typedef const void* const_pointer;
 		typedef T& reference;
 		typedef const T& const_reference;
-		typedef size_t size_type;	
+		typedef size_t size_type;
 		typedef ptrdiff_t diffrence_type;
 
 		allocator() {}
