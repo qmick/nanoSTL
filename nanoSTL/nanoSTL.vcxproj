@@ -65,9 +65,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="algo.hpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="main.cpp" />
+    <ClInclude Include="algorithm" />
+    <ClInclude Include="string" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

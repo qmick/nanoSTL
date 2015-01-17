@@ -18,10 +18,11 @@
     <ClInclude Include="algo.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
+    <ClInclude Include="string">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

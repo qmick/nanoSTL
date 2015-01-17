@@ -1,6 +1,7 @@
 #ifndef _ALGO_HPP_
 #define _ALGO_HPP_
 
+#include <algorithm>
 template <typename T> 
 void Swap(T &_Left, T &_Right)
 {
