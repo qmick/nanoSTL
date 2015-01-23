@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _MEMORY_HPP_
+#define _MEMORY_HPP_
 #include <stddef.h>
 
 namespace nano{
@@ -7,15 +8,15 @@ template<class T>
 class allocator
 {
 public:
-	typedef T value_type;
-	typedef T* pointer;
-	typedef const T* const_pointer;
-	typedef void* void_pointer;
+	typedef T           value_type;
+	typedef T*          pointer;
+	typedef const T*    const_pointer;
+	typedef void*       void_pointer;
 	typedef const void* const_void_pointer;
-	typedef T& reference;
-	typedef const T& const_reference;
-	typedef size_t size_type;
-	typedef ptrdiff_t diffrence_type;
+	typedef T&          reference;
+	typedef const T&    const_reference;
+	typedef size_t      size_type;
+	typedef ptrdiff_t   diffrence_type;
 
 	template< class U > 
 	struct rebind 
@@ -25,16 +26,16 @@ public:
 
 	allocator() 
 	{
-
+		//do nothing
 	}
 
-	allocator(const allocator& other)
+	allocator(const allocator&)
 	{
 
 	}
 
-	template<class U>
-	allocator(const allocator<U>& other)
+	template< class U >
+	allocator(const allocator<U>&)
 	{
 
 	}
@@ -42,41 +43,54 @@ public:
 
 	pointer address(reference x) const
 	{
-
+		return addressof(x);
 	}
 	const_pointer address(const_reference x) const
 	{
-
+		return addressof(x);
 	}
 
 	pointer allocate(size_type n, const void* = 0)
 	{
-
+		if(n * sizeof(T) <= this->max_size())
+			return static_cast<T*>(::operator new(n * sizeof(T)));
+		else return NULL;
 	}
 
-	void deallocate(pointer ptr, size_type n)
+	void deallocate(pointer ptr, size_type)
 	{
-
+		::operator delete(ptr);
 	}
 
 	size_type max_size() const
 	{
-
+		return size_t(-1) / sizeof(T);
 	}
 
 	void construct(pointer p, const_reference val)
 	{
-
+		::new((void *)p) T(val);
 	}
 
 	void destroy(pointer p)
 	{
-
+		p->~T();
 	}
-
-
-
 };
+
+//C++11 standard function, get address of an object even it overloads "&" operator
+template< class T >
+T* addressof(T& arg)
+{
+	return reinterpret_cast<T*>(&const_cast<char&>(reinterpret_cast<const volatile char&>(arg)));
+}
+
+//Tow allocator are always equal because class allocator is stateless
+template< class T1, class T2 >
+bool operator==(const allocator<T1>&, const allocator<T2>&){return true;}
+template< class T1, class T2 >
+bool operator!=(const allocator<T1>&, const allocator<T2>&) {return false;}
+	
 template< class InputIt, class ForwardIt >
 ForwardIt uninitialized_copy(InputIt first, InputIt last, ForwardIt d_first)
 {
@@ -89,4 +103,12 @@ void uninitialized_fill(ForwardIt first, ForwardIt last, const T& value)
 
 }
 
+template< class ForwardIt, class Size, class T >
+void uninitialized_fill_n(ForwardIt first, Size count, const T& value)
+{
+
 }
+
+}
+
+#endif
