@@ -1,5 +1,7 @@
 #ifndef _MEMORY_HPP_
 #define _MEMORY_HPP_
+#include "iterator.hpp"
+#include <new>
 #include <stddef.h>
 
 namespace nano{
@@ -54,7 +56,7 @@ public:
 	{
 		if(n * sizeof(T) <= this->max_size())
 			return static_cast<T*>(::operator new(n * sizeof(T)));
-		else return NULL;
+		else throw std::bad_alloc();
 	}
 
 	void deallocate(pointer ptr, size_type)
@@ -94,19 +96,70 @@ bool operator!=(const allocator<T1>&, const allocator<T2>&) {return false;}
 template< class InputIt, class ForwardIt >
 ForwardIt uninitialized_copy(InputIt first, InputIt last, ForwardIt d_first)
 {
+	typedef typename nano::iterator_traits<ForwardIt>::value_type Value;
+	ForwardIt current = d_first;
 
+	try
+	{
+		for(; first != last; first++, current++)
+		{
+			::new((void *)(&*current)) Value(*first);
+		}
+		return current;
+	}
+	catch(...)
+	{
+		for(; d_first != current; d_first++)
+		{
+			d_first->~Value();
+		}
+		throw;
+	}
 }
 
 template< class ForwardIt, class T >
 void uninitialized_fill(ForwardIt first, ForwardIt last, const T& value)
 {
-
+	typedef typename nano::iterator_traits<ForwardIt>::value_type Value;
+	ForwardIt current = first;
+	try
+	{
+		for(; current != last; current++)
+		{
+			::new((void*)(&*current)) Value(value);
+		}
+	}
+	catch(...)
+	{
+		for(; first != last; first++)
+		{
+			first->~Value();
+		}
+		throw;
+	}
 }
 
 template< class ForwardIt, class Size, class T >
 void uninitialized_fill_n(ForwardIt first, Size count, const T& value)
 {
+	typedef typename nano::iterator_traits<ForwardIt>::value_type Value;
+	ForwardIt current = first;
 
+	try
+	{
+		for(; count > 0; count--, current++)
+		{
+			::new ((void*)(&*current)) Value(value);
+		}
+	}
+	catch(...)
+	{
+		for(; first != current; first++)
+		{
+			first->~Value();
+		}
+		throw;
+	}
 }
 
 }
