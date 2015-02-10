@@ -55,7 +55,14 @@ public:
 	pointer allocate(size_type n, const void* = 0)
 	{
 		if(n * sizeof(T) <= this->max_size())
-			return static_cast<T*>(::operator new(n * sizeof(T)));
+		{
+			if(n * sizeof(T) > 128)
+				return static_cast<T*>(::operator new(n * sizeof(T)));
+			else
+			{
+
+			}
+		}
 		else throw std::bad_alloc();
 	}
 
@@ -89,9 +96,18 @@ T* addressof(T& arg)
 
 //Tow allocator are always equal because class allocator is stateless
 template< class T1, class T2 >
-bool operator==(const allocator<T1>&, const allocator<T2>&){return true;}
+bool operator==(const allocator<T1>&, const allocator<T2>&) {return true;}
+template< class T1, class T2 >
+bool operator<=(const allocator<T1>&, const allocator<T2>&) {return true;}
+template< class T1, class T2 >
+bool operator>=(const allocator<T1>&, const allocator<T2>&) {return true;}
 template< class T1, class T2 >
 bool operator!=(const allocator<T1>&, const allocator<T2>&) {return false;}
+template< class T1, class T2 >
+bool operator<(const allocator<T1>&, const allocator<T2>&) {return false;}
+template< class T1, class T2 >
+bool operator>(const allocator<T1>&, const allocator<T2>&) {return false;}
+
 	
 template< class InputIt, class ForwardIt >
 ForwardIt uninitialized_copy(InputIt first, InputIt last, ForwardIt d_first)
