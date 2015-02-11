@@ -98,7 +98,6 @@ ForwardIt uninitialized_copy(InputIt first, InputIt last, ForwardIt d_first)
 {
 	typedef typename nano::iterator_traits<ForwardIt>::value_type Value;
 	ForwardIt current = d_first;
-
 	try
 	{
 		for(; first != last; first++, current++)
@@ -144,7 +143,6 @@ void uninitialized_fill_n(ForwardIt first, Size count, const T& value)
 {
 	typedef typename nano::iterator_traits<ForwardIt>::value_type Value;
 	ForwardIt current = first;
-
 	try
 	{
 		for(; count > 0; count--, current++)

@@ -62,12 +62,109 @@ class reverse_iterator : public iterator <
 	typename iterator_traits<Iterator>::pointer,
 	typename iterator_traits<Iterator>::reference >
 {
+protected:
+	Iterator current;
+
 public:
 	typedef Iterator iterator_type;
+	typedef reverse_iterator<Iterator> My_type;
 
 	reverse_iterator()
 	{
 
+	}
+
+	explicit reverse_iterator(Iterator x)
+		: current(x)
+	{
+
+	}
+
+	//Copy constructor
+	template< class U >
+	reverse_iterator(const reverse_iterator<U>& other)
+		: current(other.base())
+	{
+
+	}
+
+	template< class U >
+	reverse_iterator& operator=(const reverse_iterator<U>& other)
+	{
+		this->current = other.base();
+		return (*this);
+	}
+
+	//Return the underlying base iterator
+	Iterator base() const
+	{
+		return current;
+	}
+
+	reference operator*() const
+	{
+		Iterator tmp = current;
+		return *--tmp;
+	}
+
+	pointer operator->() const
+	{
+		return nano::addressof(operator*());
+	}
+
+	//Preincrement
+	reverse_iterator& operator++()
+	{
+		current--;
+		return (*this);
+	}
+
+	//Predecrement
+	reverse_iterator& operator--()
+	{
+		current++;
+		return (*this);
+	}
+
+	//Postincrement
+	reverse_iterator operator++(int)
+	{
+		My_type tmp = *this;
+		current--;
+		return tmp;
+	}
+
+	//Postdecrement
+	reverse_iterator operator--(int)
+	{
+		My_type tmp = *this;
+		current++;
+		return tmp;
+	}
+
+	reverse_iterator operator+(difference_type n) const
+	{
+		return My_type(current - n);
+	}
+
+	reverse_iterator operator-(difference_type n) const
+	{
+		return My_type(current + n);
+	}
+	reverse_iterator& operator+=(difference_type n)
+	{
+		current -= n;
+		return (*this);
+	}
+	reverse_iterator& operator-=(difference_type n)
+	{
+		current += n;
+		return (*this);
+	}
+
+	reference operator[](different_type n) const
+	{
+		return (*(*this + n));
 	}
 };
 

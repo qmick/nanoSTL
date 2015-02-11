@@ -29,10 +29,12 @@ public:
     {
         //TODO
     }
-    explicit vector(size_type count)
-    {
-        //TODO
-    }
+	explicit vector(size_type count, 
+		            const T& value = T(),
+		            const Allocator& alloc = Allocator())
+	{
+		
+	}
 
     template< class InputIt >
     vector(InputIt first, InputIt last)
@@ -40,6 +42,10 @@ public:
         //TODO
     }
 
+	vector(const vector& other)
+	{
+
+	}
 
     ~vector()
     {
@@ -221,6 +227,12 @@ public:
     {
         //TODO
     }
+};
+
+template<class Allocator>
+class vector < bool, Allocator >
+{
+
 };
 
 }
