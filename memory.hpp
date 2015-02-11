@@ -6,6 +6,10 @@
 
 namespace nano{
 
+	enum{__Align = 8};  
+	enum{__UpperBound = 128};  //Memory required larger than this
+							   //upperbound would be allocated by operator new
+	enum{__NFreeLists = __UpperBound / __Align}; //Number of free lists
 template<class T>
 class allocator
 {
@@ -43,47 +47,85 @@ public:
 	}
 	~allocator() {}
 
-	pointer address(reference x) const
+	static pointer address(reference x) const
 	{
 		return addressof(x);
 	}
-	const_pointer address(const_reference x) const
+	static const_pointer address(const_reference x) const
 	{
 		return addressof(x);
 	}
 
-	pointer allocate(size_type n, const void* = 0)
+	static pointer allocate(size_type n, const void* = 0)
 	{
-		if(n * sizeof(T) <= this->max_size())
+		mem_block * volatile *local_list;
+		mem_block *result;
+		size_type total_size = n * sizeof(T);
+		if(total_size <= max_size())
 		{
-			if(n * sizeof(T) > 128)
+			if(n * sizeof(T) > __UpperBound)
 				return static_cast<T*>(::operator new(n * sizeof(T)));
 			else
 			{
-
+				local_list = free_list + list_index(total_size);
+				result = *local_list;
+				if (result != 0)
+				{
+					*local_list = result->next_block;					
+				}
+				else
+				{
+					result = refill(total_size);
+				}
+				return (pointer *) result;
 			}
 		}
 		else throw std::bad_alloc();
 	}
 
-	void deallocate(pointer ptr, size_type)
+	static void deallocate(pointer ptr, size_type)
 	{
 		::operator delete(ptr);
 	}
 
-	size_type max_size() const
+	static size_type max_size() const
 	{
 		return size_t(-1) / sizeof(T);
 	}
 
-	void construct(pointer p, const_reference val)
+	static void construct(pointer p, const_reference val)
 	{
 		::new((void *)p) T(val);
 	}
 
-	void destroy(pointer p)
+	static void destroy(pointer p)
 	{
 		p->~T();
+	}
+
+private:
+	struct mem_block
+	{
+		mem_block *next_block;
+	};
+	static size_t pool_size = 0;
+	static char *pool_start = 0;
+	static char *pool_end = 0;
+	static mem_block *free_list[__NFreeLists] = { 0 };
+
+	static size_t round_up(size_t n)
+	{
+		return (n + __Align - 1) & ~(__Align - 1);
+	}
+
+	static size_t list_index(size_t n)
+	{
+		return (n + __Align - 1) / __Align - 1;
+	}
+	
+	static void* refill(size_t n)
+	{
+		//TODO
 	}
 };
 
