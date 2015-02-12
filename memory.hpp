@@ -47,19 +47,19 @@ public:
 	}
 	~allocator() {}
 
-	static pointer address(reference x) const
+	static pointer address(reference x)
 	{
 		return addressof(x);
 	}
-	static const_pointer address(const_reference x) const
+	static const_pointer address(const_reference x)
 	{
 		return addressof(x);
 	}
 
 	static pointer allocate(size_type n, const void* = 0)
 	{
-		mem_block * volatile *local_list;
-		mem_block *result;
+		block * volatile *local_list;
+		block *result;
 		size_type total_size = n * sizeof(T);
 		if(total_size <= max_size())
 		{
@@ -88,7 +88,7 @@ public:
 		::operator delete(ptr);
 	}
 
-	static size_type max_size() const
+	static size_type max_size()
 	{
 		return size_t(-1) / sizeof(T);
 	}
@@ -104,14 +104,14 @@ public:
 	}
 
 private:
-	struct mem_block
+	struct block
 	{
-		mem_block *next_block;
+		block *next_block;
 	};
-	static size_t pool_size = 0;
-	static char *pool_start = 0;
-	static char *pool_end = 0;
-	static mem_block *free_list[__NFreeLists] = { 0 };
+	static size_t pool_size;
+	static char *pool_start;
+	static char *pool_end;
+	static block * volatile free_list[__NFreeLists];
 
 	static size_t round_up(size_t n)
 	{
@@ -125,11 +125,85 @@ private:
 	
 	static void* refill(size_t n)
 	{
-		//TODO
+		//Try to get 20 memory blocks
+		int nblocks = 20;
+		char * chunk = chunk_alloc(n, nblocks);	
+		block * volatile * local_list;
+		block * result;
+		block * current_block, * next_block;
+		int i;
+
+		if(1 == nblocks) return chunk;
+
+		local_list = free_list + list_index(n);
+		result = (block*)chunk;
+
+		*local_list = next_block = (block*)(chunk + n);
+		for(i = 1;; i++)
+		{
+			current_block = next_block;
+			next_block = (block *)((char*)next_block + n);
+			if(nblocks - 1 == i)
+			{
+				current_block->next_block = 0;
+				break;
+			}
+			else
+			{
+				current_block->next_block = next_block;
+			}
+		}
+
+		return result;
+	}
+
+	static char *chunk_alloc(size_t size, int &nblocks)
+	{
+		char * result;
+		size_t total_bytes = size * nblocks;	
+		size_t bytes_left = pool_end - pool_end;
+
+		if(bytes_left >= total_bytes)
+		{
+			result = pool_start;
+			pool_start += total_bytes;
+			return result;
+		} else if(bytes_left >= size)
+		{
+			nblocks = bytes_left / size;
+			total_bytes = size * nblocks;
+			result = pool_start;
+			pool_start += total_bytes;
+			return result;
+		} else
+		{
+			size_t bytes_to_get = 2 * total_bytes + round_up(pool_size >> 4);
+			if(bytes_left > 0)	
+			{
+				block * volatile * local_list = free_list + list_index(bytes_left);
+				((block*)pool_start)->next_block = *local_list;
+				*local_list = (block*)pool_start;
+			}
+
+			pool_start = new char[bytes_to_get];
+			pool_size += bytes_to_get;
+			pool_end = pool_start + bytes_to_get;
+			return chunk_alloc(size, nblocks);
+		}
 	}
 };
 
-//C++11 standard function, get address of an object even it overloads "&" operator
+//Initilization of static member of class allocator
+template< class T >
+size_t allocator<T>::pool_size = 0;
+template< class T >
+char* allocator<T>::pool_start = 0;
+template< class T >
+char* allocator<T>::pool_end = 0;
+template< class T >
+typename allocator<T>::block* volatile allocator<T>::free_list[__NFreeLists] = {0};
+
+//C++11 standard function, get address of an blockect even it overloads "&" operator
 template< class T >
 T* addressof(T& arg)
 {
