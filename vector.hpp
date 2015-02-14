@@ -33,7 +33,8 @@ public:
 		            const T& value = T(),
 		            const Allocator& alloc = Allocator())
 	{
-		
+		Allocator::allocate(count * sizeof(T));
+		uninitialized_fill_n();
 	}
 
     template< class InputIt >
