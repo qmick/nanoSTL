@@ -67,7 +67,7 @@ protected:
 
 public:
 	typedef Iterator iterator_type;
-	typedef reverse_iterator<Iterator> My_type;
+	typedef reverse_iterator<Iterator> my_type;
 
 	reverse_iterator()
 	{
@@ -129,7 +129,7 @@ public:
 	//Postincrement
 	reverse_iterator operator++(int)
 	{
-		My_type tmp = *this;
+		my_type tmp = *this;
 		current--;
 		return tmp;
 	}
@@ -137,19 +137,19 @@ public:
 	//Postdecrement
 	reverse_iterator operator--(int)
 	{
-		My_type tmp = *this;
+		my_type tmp = *this;
 		current++;
 		return tmp;
 	}
 
 	reverse_iterator operator+(difference_type n) const
 	{
-		return My_type(current - n);
+		return my_type(current - n);
 	}
 
 	reverse_iterator operator-(difference_type n) const
 	{
-		return My_type(current + n);
+		return my_type(current + n);
 	}
 	reverse_iterator& operator+=(difference_type n)
 	{
