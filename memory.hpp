@@ -1,6 +1,8 @@
 #ifndef _MEMORY_HPP_
 #define _MEMORY_HPP_
 #include "iterator.hpp"
+#include "nano\type_traits.hpp"
+#include "nano\uninitialized.hpp"
 #include <new>
 #include <stddef.h>
 
@@ -45,11 +47,11 @@ public:
 
 	pointer address(reference x)
 	{
-		return _addressof(x);
+		return __addressof(x);
 	}
 	const_pointer address(const_reference x)
 	{
-		return _addressof(x);
+		return __addressof(x);
 	}
 
 	pointer allocate(size_type n, const void* = 0)
@@ -276,80 +278,57 @@ template< class T1, class T2 >
 bool operator>(const allocator<T1>&, const allocator<T2>&) {return false;}
 
 	
-template< class T >
-T* _addressof(T& arg)
-{
-	return reinterpret_cast<T*>(
-		   &const_cast<char&>(
-		   reinterpret_cast<const volatile char&>(arg)));
-}
 
 template< class InputIt, class ForwardIt >
 ForwardIt uninitialized_copy(InputIt first, InputIt last, ForwardIt d_first)
 {
-	typedef typename nano::iterator_traits<ForwardIt>::value_type Value;
-	ForwardIt current = d_first;
-	try
-	{
-		for(; first != last; first++, current++)
-		{
-			::new((void *)(&*current)) Value(*first);
-		}
-		return current;
-	}
-	catch(...)
-	{
-		for(; d_first != current; d_first++)
-		{
-			d_first->~Value();
-		}
-		throw;
-	}
+	typedef typename nano::type_traits<T>::is_POD_type POD_type;
+	return __uninitialized_copy(first, last, d_first, POD_type);
 }
 
 template< class ForwardIt, class T >
 void uninitialized_fill(ForwardIt first, ForwardIt last, const T& value)
 {
-	typedef typename nano::iterator_traits<ForwardIt>::value_type Value;
-	ForwardIt current = first;
-	try
-	{
-		for(; current != last; current++)
-		{
-			::new((void*)(&*current)) Value(value);
-		}
-	}
-	catch(...)
-	{
-		for(; first != last; first++)
-		{
-			first->~Value();
-		}
-		throw;
-	}
+	typedef typename nano::type_traits<T>::is_POD_type POD_type;
+	__uninitialized_fill(first, last, value, POD_type);
 }
 
 template< class ForwardIt, class Size, class T >
 void uninitialized_fill_n(ForwardIt first, Size count, const T& value)
 {
-	typedef typename nano::iterator_traits<ForwardIt>::value_type Value;
-	ForwardIt current = first;
-	try
-	{
-		for(; count > 0; count--, current++)
-		{
-			::new ((void*)(&*current)) Value(value);
-		}
-	}
-	catch(...)
-	{
-		for(; first != current; first++)
-		{
-			first->~Value();
-		}
-		throw;
-	}
+	typedef typename nano::type_traits<T>::is_POD_type POD_type;
+	__uninitialized_fill_n(first, count, value, POD_type);
 }
+
+template< class OutputIt, class T >
+class raw_storage_iterator
+	: public iterator< output_iterator_tag, void, void, void, void >
+{
+	explicit raw_storage_iterator(OutputIt it)
+	{
+
+	}
+
+	raw_storage_iterator& operator=(const T& el)
+	{
+
+	}
+
+	raw_storage_iterator& operator*()
+	{
+
+	}
+
+	raw_storage_iterator& operator++()
+	{
+
+	}
+
+	raw_storage_iterator operator++(int)
+	{
+
+	}
+};
 
 }
 
