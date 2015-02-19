@@ -3,16 +3,7 @@
 
 #include "type_traits.hpp"
 
-namespace nano
-{
-
-template< class T >
-T* __addressof(T& arg)
-{
-	return reinterpret_cast<T*>(
-		&const_cast<char&>(
-		reinterpret_cast<const volatile char&>(arg)));
-}
+namespace nano {
 
 //uninitialized_copy for POD
 template< class InputIt, class ForwardIt >
@@ -22,7 +13,7 @@ ForwardIt __uninitialized_copy(InputIt first, InputIt last, ForwardIt d_first, t
 	ForwardIt current = d_first;
 	for (; first != last; first++, current++)
 	{
-		memmove(&*current, &*first, sizeof(Value));
+		*current = *first;
 	}
 	return current;
 }
@@ -60,7 +51,7 @@ void __uninitialized_fill(ForwardIt first, ForwardIt last, const T& value, true_
 	ForwardIt current = first;
 	for (; current != last; current++)
 	{
-		memcpy(&*current, &value, sizeof(Value));
+		*current = value;
 	}
 }
 
@@ -96,7 +87,7 @@ void __uninitialized_fill_n(ForwardIt first, Size count, const T& value, true_ty
 	ForwardIt current = first;
 	for (; count > 0; count--, current++)
 	{
-		memcpy(&*current, &*value, sizeof(Value));
+		*current = value;
 	}
 }
 

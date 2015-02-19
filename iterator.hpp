@@ -115,14 +115,14 @@ public:
 	//Preincrement
 	reverse_iterator& operator++()
 	{
-		current--;
+		--current;
 		return (*this);
 	}
 
 	//Predecrement
 	reverse_iterator& operator--()
 	{
-		current++;
+		++current;
 		return (*this);
 	}
 
@@ -130,7 +130,7 @@ public:
 	reverse_iterator operator++(int)
 	{
 		my_type tmp = *this;
-		current--;
+		--current;
 		return tmp;
 	}
 
@@ -138,7 +138,7 @@ public:
 	reverse_iterator operator--(int)
 	{
 		my_type tmp = *this;
-		current++;
+		++current;
 		return tmp;
 	}
 
@@ -167,6 +167,64 @@ public:
 		return (*(*this + n));
 	}
 };
+
+template< class InputIt, class Distance >
+inline void advance(InputIt& it, Distance n)
+{
+	typedef typename iterator_traits<InputIt>::iterator_category category;
+	__advance(it, n, category);
+}
+
+template< class RanIt, class Distance >
+inline void __advance(RanIt& it, Distance n, random_access_iterator_tag)
+{
+	it += n;
+}
+
+template< class BidIt, class Distance >
+inline void __advance(BidIt& it, Distance n, bidirectional_iterator_tag)
+{
+	if (n > 0)
+		while (n--) ++it;
+	else
+		while (n++) --it;
+	
+}
+
+template< class InputIt, class Distance >
+inline void __advance(InputIt& it, Distance n, output_iterator_tag)
+{
+
+}
+
+template< class InputIt >
+inline typename iterator_traits<InputIt>::difference_type
+distance(InputIt first, InputIt last)
+{
+	typedef typename iterator_traits<InputIt>::iterator_category category;
+	return __distance(first, last, category);
+}
+
+template< class RanIt >
+inline typename iterator_traits<RanIt>::difference_type
+__distance(RanIt first, RanIt last, random_access_iterator_tag)
+{
+	return last - first;
+}
+
+template< class InputIt >
+inline typename iterator_traits<InputIt>::difference_type
+__distance(InputIt first, InputIt last, input_iterator_tag)
+{
+	typename iterator_traits<InputIt>::difference_type return_type;
+	return_type dist = 0;
+	while (first != last)
+	{
+		++first;
+		++dist;
+	}
+	return distance;
+}
 
 }
 

@@ -4,9 +4,10 @@
 #include "nano\type_traits.hpp"
 #include "nano\uninitialized.hpp"
 #include <new>
-#include <stddef.h>
+#include <cstddef>
 
-namespace nano{
+
+namespace nano {
 
 template<class T>
 class allocator
@@ -107,7 +108,7 @@ public:
 		size_type total_size = n * sizeof(T);
 		if(total_size <= max_size())
 		{
-			if(n * sizeof(T) > __UpperBound)
+			if(n * sizeof(T) > UPPERBOUND)
 				return static_cast<T*>(::operator new(n * sizeof(T)));
 			else
 			{
@@ -131,13 +132,14 @@ public:
 	{
 		block *q = (block*) ptr;
 		obj * volatile * local_list;
-		if (n > __UpperBound)
+		int total_size = n * sizeof(T);
+		if (total_size > UPPERBOUND)
 		{
 			::operator delete(ptr);
 			return;
 		}
 		
-		local_list = free_list + list_index(n);
+		local_list = free_list + list_index(total_size);
 		q->next_block = *local_list;
 		*local_list = q;
 	}
@@ -158,9 +160,9 @@ public:
 	}
 
 private:
-	enum{ __Align = 8 };
-	enum{ __UpperBound = 128 };  //Memory required larger than this would be allocated by operator new
-	enum{ __NFreeLists = __UpperBound / __Align }; //Number of free lists
+	enum{ ALIGN = 8 };
+	enum{ UPPERBOUND = 128 };  //Memory required larger than this would be allocated by operator new
+	enum{ NFREELISTS = UPPERBOUND / ALIGN }; //Number of free lists
 
 	//Memory block
 	struct block 
@@ -170,16 +172,16 @@ private:
 	static size_t pool_size;
 	static char *pool_start;
 	static char *pool_end;
-	static block * volatile free_list[__NFreeLists];
+	static block * volatile free_list[NFREELISTS];
 
 	static size_t round_up(size_t n)
 	{
-		return (n + __Align - 1) & ~(__Align - 1);
+		return (n + ALIGN - 1) & ~(ALIGN - 1);
 	}
 
 	static size_t list_index(size_t n)
 	{
-		return (n + __Align - 1) / __Align - 1;
+		return (n + ALIGN - 1) / ALIGN - 1;
 	}
 	
 	static void* refill(size_t n)
@@ -220,7 +222,7 @@ private:
 	{
 		char * result;
 		size_t total_bytes = size * nblocks;	
-		size_t bytes_left = pool_end - pool_end;
+		size_t bytes_left  = pool_end - pool_end;
 
 		//If memory pool is large enough
 		if(bytes_left >= total_bytes)
@@ -230,9 +232,9 @@ private:
 			return result;
 		} else if(bytes_left >= size)
 		{
-			nblocks = bytes_left / size;
+			nblocks     = bytes_left / size;
 			total_bytes = size * nblocks;
-			result = pool_start;
+			result      = pool_start;
 			pool_start += total_bytes;
 			return result;
 		} else //If memory is too small for one block
@@ -240,14 +242,14 @@ private:
 			size_t bytes_to_get = 2 * total_bytes + round_up(pool_size >> 4);
 			if(bytes_left > 0)	
 			{
-				block * volatile * local_list = free_list + list_index(bytes_left);
+				block * volatile * local_list    = free_list + list_index(bytes_left);
 				((block*)pool_start)->next_block = *local_list;
-				*local_list = (block*)pool_start;
+				*local_list                      = (block*)pool_start;
 			}
 
 			pool_start = static_cast<char*>(::operator new(bytes_to_get));
 			pool_size += bytes_to_get;
-			pool_end = pool_start + bytes_to_get;
+			pool_end   = pool_start + bytes_to_get;
 			return chunk_alloc(size, nblocks);
 		}
 	}
@@ -261,7 +263,7 @@ char* allocator<T>::pool_start = 0;
 template< class T >
 char* allocator<T>::pool_end = 0;
 template< class T >
-typename allocator<T>::block* volatile allocator<T>::free_list[__NFreeLists] = {0};
+typename allocator<T>::block* volatile allocator<T>::free_list[NFREELISTS] = {0};
 
 //Tow allocator are always equal because class allocator is stateless
 template< class T1, class T2 >
@@ -278,6 +280,14 @@ template< class T1, class T2 >
 bool operator>(const allocator<T1>&, const allocator<T2>&) {return false;}
 
 	
+template< class T >
+T* __addressof(T& arg)
+{
+	return reinterpret_cast<T*>(
+		&const_cast<char&>(
+		reinterpret_cast<const volatile char&>(arg)));
+}
+
 
 template< class InputIt, class ForwardIt >
 ForwardIt uninitialized_copy(InputIt first, InputIt last, ForwardIt d_first)

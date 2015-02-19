@@ -3,6 +3,8 @@
 
 #include "memory.hpp"
 #include "iterator.hpp"
+#include "algorithm.hpp"
+#include <stdexcept>
 
 namespace nano{
 
@@ -24,152 +26,177 @@ public:
     typedef nano::reverse_iterator<iterator>       reverse_iterator;
     typedef nano::reverse_iterator<const_iterator> const_reverse_iterator;
 
-
+	//Member functions
     vector()
     {
-        //TODO
+		my_first = 0;
+		my_last = 0;
+		my_end = 0;
     }
 	explicit vector(size_type count, 
 		            const T& value = T(),
 		            const Allocator& alloc = Allocator())
 	{
-		Allocator::allocate(count * sizeof(T));
-		uninitialized_fill_n();
+		reserve(count);
+		my_last = uninitialized_fill_n(my_first, my_last, value);
 	}
 
     template< class InputIt >
     vector(InputIt first, InputIt last)
     {
-        //TODO
+		difference_type dist = distance(first, last);
+		if (dist > 0)
+		{
+			reserve(dist);
+			my_last = uninitialized_copy(first, last, my_first);
+		}
     }
 
 	vector(const vector& other)
 	{
-
+		size_type count = other.size();
+		if (count > 0)
+		{
+			reserve(count);
+			memcpy(my_first, other.my_first, count * sizeof(T));
+			my_last = my_first + count;
+		}
 	}
 
     ~vector()
     {
-        //TODO
+		Allocator::deallocate(my_first, capacity());
     }
+
+	vector& operator=(const vector& other)
+	{
+		size_type count = other.size();
+		if (count > 0)
+		{
+			reserve(count);
+			memcpy(my_first, other.my_first, count * sizeof(T));
+			my_last = my_first + count;
+		}
+	}
 
     void assign(size_type count, const_reference value)
     {
-        //TODO
+		reserve(count);
+		my_last = uninitialized_fill_n(my_first, count, value);
     }
 
     template < class InputIt >
     void assign(InputIt first, InputIt last)
     {
-        //TODO
+		typename iterator_traits<InputIt>::different_type count = distance(first, last);
+		reserve(count);
+		my_last = uninitialized_copy(first, last, my_first);
     }
+
+	allocator_type get_allocator() const
+	{
+		return alloc;
+	}
 
     //Element access
     reference at(size_type pos)
     {
-        //TODO
+		if (pos < size())
+			return (*this)[pos];
+		else
+			throw std::out_of_range;
     }
 
     const_reference at(size_type pos) const
     {
-        //TODO
+		if (pos < size())
+			return (*this)[pos];
+		else
+			throw std::out_of_range;
     }
 
     reference operator[](size_type pos)
     {
-        //TODO
+		return *(begin() + pos);
     }
 
     const_reference operator[](size_type pos) const
     {
-        //TODO
+		return *(begin() + pos);
     }
 
     reference front()
     {
-        //TODO
+		return *begin();
     }
 
     const_reference front()  const
     {
-        //TODO
+		return *begin();
     }
 
     reference back()
     {
-        //TODO
+		return *(end() - 1);
     }
 
     const_reference back() const
     {
-        //TODO
-    }
+		return *(end() - 1);
+	}
 
     //Iterators
-    iterator begin()
-    {
-        //TODO
-    }
+    iterator begin() { return my_first; }
+    const_iterator begin() const { return my_first; }
+	iterator end() { return my_last; }
+	const_iterator end() const { return my_last; }
 
-    const_iterator begin() const
-    {
-        //TODO
-    }
-
-    iterator end()
-    {
-        //TODO
-    }
-
-    const_iterator end() const
-    {
-        //TODO
-    }
-
-    reverse_iterator rbegin()
-    {
-        //TODO
-    }    
-
-    const_reverse_iterator rbegin() const
-    {
-        //TODO
-    }
-
-    reverse_iterator rend()
-    {
-        //TODO
-    }
-
-    const_reverse_iterator rend() const
-    {
-        //TODO
-    }
+	reverse_iterator rbegin()
+	{ return reverse_iterator(end()); }
+	const_reverse_iterator rbegin() const 
+	{ return const_reverse_iterator(end()); }
+	reverse_iterator rend() 
+	{ return reverse_iterator(begin()); }
+	const_reverse_iterator rend() const 
+	{ return const_reverse_iterator(begin()); }
 
     //Capacity
+
     bool empty() const
     {
-        //TODO
+		return begin() == end();
     }
 
     size_type size() const
-    {
-        //TODO
-    }
+    { return size_type(end() - begin()); }
 
     size_type max_size() const
     {
-        //TODO
+		return size_type(-1) / sizeof(T);
     }
 
     void reserve(size_type new_cap)
     {
-        //TODO
+		//TODO
+		if (new_cap > capacity())
+		{
+			pointer temp = Allocator::allocate(new_cap);
+			try
+			{
+				iterator temp_first = uninitialized_copy(begin(), end(), temp);
+				
+			}
+			catch (...)
+			{
+				Allocator::deallocate(temp, new_cap);
+			}
+
+		}
     }
 
     size_type capacity() const
     {
-        //TODO
+		return my_end - my_first;
     }
 
     //Modifiers
@@ -228,14 +255,22 @@ public:
     {
         //TODO
     }
+
+	private:
+		pointer my_first; //First of array
+		pointer my_last; //Last of array
+		pointer my_end; //End of space
+		Allocator alloc;
 };
 
-template<class Allocator>
-class vector < bool, Allocator >
+template< class Allocator >
+class vector< bool, Allocator >
 {
 
 };
 
 }
+
+
 
 #endif
