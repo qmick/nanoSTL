@@ -101,6 +101,7 @@ public:
 	typedef size_t      size_type;
 	typedef ptrdiff_t   diffrence_type;
 
+	//allocate memory base on the number of element
 	static pointer allocate(size_type n, const void* = 0)
 	{
 		block * volatile *local_list;
@@ -108,8 +109,8 @@ public:
 		size_type total_size = n * sizeof(T);
 		if(total_size <= max_size())
 		{
-			if(n * sizeof(T) > UPPERBOUND)
-				return static_cast<T*>(::operator new(n * sizeof(T)));
+			if (total_size > UPPERBOUND)
+				return static_cast<T*>(::operator new(total_size));
 			else
 			{
 				local_list = free_list + list_index(total_size);
@@ -128,6 +129,7 @@ public:
 		else throw std::bad_alloc();
 	}
 
+	//deallocate memory base on the number of element
 	static void deallocate(pointer ptr, size_type n)
 	{
 		block *q = (block*) ptr;
@@ -293,21 +295,21 @@ template< class InputIt, class ForwardIt >
 ForwardIt uninitialized_copy(InputIt first, InputIt last, ForwardIt d_first)
 {
 	typedef typename nano::type_traits<T>::is_POD_type POD_type;
-	return __uninitialized_copy(first, last, d_first, POD_type);
+	return __uninitialized_copy(first, last, d_first, POD_type());
 }
 
 template< class ForwardIt, class T >
 void uninitialized_fill(ForwardIt first, ForwardIt last, const T& value)
 {
 	typedef typename nano::type_traits<T>::is_POD_type POD_type;
-	__uninitialized_fill(first, last, value, POD_type);
+	__uninitialized_fill(first, last, value, POD_type());
 }
 
 template< class ForwardIt, class Size, class T >
 void uninitialized_fill_n(ForwardIt first, Size count, const T& value)
 {
 	typedef typename nano::type_traits<T>::is_POD_type POD_type;
-	__uninitialized_fill_n(first, count, value, POD_type);
+	__uninitialized_fill_n(first, count, value, POD_type());
 }
 
 template< class OutputIt, class T >
