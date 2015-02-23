@@ -36,15 +36,14 @@ public:
 		            const Allocator& alloc = Allocator())	//May be removed	
 					: my_first(0), my_last(0), my_end(0)
 	{
-		vector_init(count, value, true_type());
+		this->vector_init(count, value, true_type()); //Call 
 	}
 
     template< class InputIt >
     vector(InputIt first, InputIt last)
 		: my_first(0), my_last(0), my_end(0)
     {
-		typedef typename type_traits<InputIt>::is_integral is_int;
-		this->vector_init(first, last, is_int());
+		this->vector_init(first, last, is_integral(InputIt()));
     }
 
 	vector(const my_type& other)
@@ -159,12 +158,12 @@ public:
 
     bool empty() const
     {
-		return this->begin() == this->end();
+		return begin() == end();
     }
 
     size_type size() const
 	{
-		return size_type(this->end() - this->begin());
+		return size_type(end() - begin());
 	}
 
     size_type max_size() const
@@ -177,15 +176,17 @@ public:
 		//TODO
 		if (new_cap > this->capacity())
 		{
-			pointer temp = Allocator::allocate(new_cap);
+			pointer temp_first = Allocator::allocate(new_cap);
 			try
 			{
-				iterator temp_first = uninitialized_copy(begin(), end(), temp);
-				
+				iterator temp_last = uninitialized_copy(begin(), end(), temp);
+				range_destroy(begin(), end());
+				my_first = temp_first;
+				my_last  = temp_last;
 			}
 			catch (...)
 			{
-				Allocator::deallocate(temp, new_cap);
+				Allocator::deallocate(temp_first, new_cap);
 			}
 
 		}
@@ -199,7 +200,7 @@ public:
     //Modifiers
     void clear()
     {
-		range_destroy(this->begin(), this->end());
+		range_destroy(begin(), end());
     }
 
     iterator insert(const_iterator pos, const T& value)
@@ -259,7 +260,7 @@ public:
 		pointer my_end; //End of space
 
 		template< class InputIt >
-		void vector_init(InputIt first, InputIt last, true_type)
+		void vector_init(InputIt count, InputIt value, true_type)
 		{
 			this->reserve(count);
 			my_last = uninitialized_fill_n(my_first, count, value);
@@ -268,19 +269,18 @@ public:
 		template< class InputIt >
 		void vector_init(InputIt first, InputIt last, false_type)
 		{
-			typedef typename iterator_traits<InputIt>::iterator_category category;
-			this->fill_range(first, last, category());
+			this->fill_from_range(first, last, iterator_category(InputIt()));
 		}
 		
 		template< class InputIt >
-		void fill_range(InputIt first, InputIt last, input_iterator_tag)
+		void fill_from_range(InputIt first, InputIt last, input_iterator_tag)
 		{
 			for (; first != last; ++first)
 				this->push_back(first);
 		}
 
 		template< class InputIt >
-		void fill_range(InputIt first, InputIt last, forward_iterator_tag)
+		void fill_from_range(InputIt first, InputIt last, forward_iterator_tag)
 		{
 			size_type count = static_cast<size_type>(distance(first, last));
 			my_first        = Allocator::allocate(count);

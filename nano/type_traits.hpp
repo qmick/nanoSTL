@@ -163,6 +163,22 @@ class type_traits < T* >
 	typedef false_type is_integral;
 };
 
+template< class T >
+inline typename type_traits<T>::is_POD_type
+is_POD_type(const T&)
+{
+	typedef typename type_traits<T>::is_POD_type POD_type;
+	return POD_type();
+}
+
+template< class T >
+inline typename type_traits<T>::is_integral
+is_integral(const T&)
+{
+	typedef typename type_traits<T>::is_integral is_int;
+	return is_int();
+}
+
 }
 #endif
 

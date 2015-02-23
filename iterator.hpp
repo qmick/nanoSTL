@@ -168,6 +168,14 @@ public:
 	}
 };
 
+template< class It >
+inline typename iterator_traits<It>::category
+iterator_category(const It&)
+{
+	typedef typename iterator_traits<It>::category category;
+	return category();
+}
+
 template< class InputIt, class Distance >
 inline void advance(InputIt& it, Distance n)
 {
@@ -194,15 +202,14 @@ inline void __advance(BidIt& it, Distance n, bidirectional_iterator_tag)
 template< class InputIt, class Distance >
 inline void __advance(InputIt& it, Distance n, output_iterator_tag)
 {
-
+	while (n--) ++it;
 }
 
 template< class InputIt >
 inline typename iterator_traits<InputIt>::difference_type
 distance(InputIt first, InputIt last)
 {
-	typedef typename iterator_traits<InputIt>::iterator_category category;
-	return __distance(first, last, category);
+	return __distance(first, last, iterator_category(first));
 }
 
 template< class RanIt >
@@ -216,15 +223,16 @@ template< class InputIt >
 inline typename iterator_traits<InputIt>::difference_type
 __distance(InputIt first, InputIt last, input_iterator_tag)
 {
-	typename iterator_traits<InputIt>::difference_type return_type;
-	return_type dist = 0;
+	typename iterator_traits<InputIt>::difference_type dist = 0;
 	while (first != last)
 	{
 		++first;
 		++dist;
 	}
-	return distance;
+	return dist;
 }
+
+
 
 }
 
