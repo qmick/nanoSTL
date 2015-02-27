@@ -60,7 +60,7 @@ public:
 
     ~vector()
     {
-		range_destroy(begin(), end());
+		destroy(begin(), end());
 		Allocator::deallocate(my_first, capacity());
     }
 
@@ -180,9 +180,11 @@ public:
 			try
 			{
 				iterator temp_last = uninitialized_copy(begin(), end(), temp);
-				range_destroy(begin(), end());
+				destroy(begin(), end());
+				Allocator::deallocate(my_first, capacity());
 				my_first = temp_first;
 				my_last  = temp_last;
+				
 			}
 			catch (...)
 			{
@@ -200,33 +202,46 @@ public:
     //Modifiers
     void clear()
     {
-		range_destroy(begin(), end());
+		erase(begin(), end());
     }
 
-    iterator insert(const_iterator pos, const T& value)
+    iterator insert(iterator pos, const T& value)
     {
-        //TODO
+		if (size() + 1 <= capacity())
+		{
+			
+		}
     }
 
-    iterator insert(const_iterator pos, size_type count, const T& value)
+    iterator insert(iterator pos, size_type count, const T& value)
     {
         //TODO
     }
 
     template <class InputIt>
-    iterator insert(const_iterator pos, InputIt first, InputIt last)
+    iterator insert(iterator pos, InputIt first, InputIt last)
     {
         //TODO
     }
 
-    iterator erase(const_iterator pos)
+    iterator erase(iterator pos)
     {
-        //TODO
+		destroy(pos);
+		if (pos + 1 != end())
+			memmove(pos, pos + 1, my_last - pos - 1);
+		--my_last;
+		return pos;
     }
 
-    iterator erase(const_iterator first, const_iterator last)
+    iterator erase(iterator first, iterator last)
     {
-        //TODO
+		if (first < last)
+		{
+			destroy(first, last);
+			memmove(first, last, my_last - last - 1);
+			my_last -= last - first;
+		}
+		return first;
     }
 
     void push_back(const T& value)
@@ -236,7 +251,8 @@ public:
 
     void pop_back()
     {
-        //TODO
+		--my_last;
+		destroy(my_last + 1);
     }
 
     void resize(size_type count)
