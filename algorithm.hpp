@@ -3,6 +3,7 @@
 
 #include "iterator.hpp"
 #include "utility.hpp"
+#include "nano/algo_base.hpp"
 
 namespace nano {
 
@@ -10,7 +11,9 @@ namespace nano {
 template< class InputIt, class UnaryFunction >
 UnaryFunction for_each(InputIt first, InputIt last, UnaryFunction f)
 {
-	//TODO
+	for (; first != last; ++first)
+		f(*first);
+	return f;
 }
 
 
@@ -18,21 +21,39 @@ template< class InputIt, class T >
 typename iterator_traits<InputIt>::difference_type
 	count(InputIt first, InputIt last, const T &value)
 {
-	//TODO
+	typename iterator_traits<InputIt>::difference_type result = 0;
+	for (; first != last; ++first)
+	{
+		if (*first == value)
+			++result;
+	}
+	return result;
 }
 
 template< class InputIt, class UnaryPredicate >
 typename iterator_traits<InputIt>::difference_type
 	count_if(InputIt first, InputIt last, UnaryPredicate p)
 {
-	//TODO
+	typename iterator_traits<InputIt>::difference_type result = 0;
+	for (; first != last; ++first)
+	{
+		if (p(*first))
+			++result;
+	}
+	return result;
 }
 
 template< class InputIt1, class InputIt2 >
 pair<InputIt1, InputIt2> 
 mismatch(InputIt1 first1, InputIt1 last1, InputIt2 first2)
 {
-	//TODO
+	while (first1 != last1 && *first1 == *first2)
+	{
+		++first1;
+		++first2;
+	}
+
+	return make_pair(first1, first2);
 }
 
 template< class InputIt1, class InputIt2, class BinaryPredicate >
@@ -40,39 +61,69 @@ pair<InputIt1, InputIt2>
 mismatch(InputIt1 first1, InputIt1 last1, InputIt2 first2,
 BinaryPredicate p)
 {
-	//TODO
+	while (first1 != last1 && p(*first1, *first2))
+	{
+		++first1;
+		++first2;
+	}
+
+	return make_pair(first1, first2);
 }
 
 template< class InputIt1, class InputIt2 >
 bool equal(InputIt1 first1, InputIt1 last1, InputIt2 first2)
 {
-	//TODO
+	for (; first1 != last1; ++first1, ++first2)
+	{
+		if (!(*first1 == *first2))
+			return false;
+	}
+	return true;
 }
 
 template< class InputIt1, class InputIt2, class BinaryPredicate >
 bool equal(InputIt1 first1, InputIt1 last1, InputIt2 first2, BinaryPredicate p)
 {
-	//TODO
+	for (; first1 != last1; ++first1, ++first2)
+	{
+		if (!p(*first1, *first2))
+			return false;
+	}
+	return true;
 }
 
 template< class InputIt, class T >
 InputIt find(InputIt first, InputIt last, const T& value)
 {
-	//TODO
+	for (; first != last; ++first)
+	{
+		if (*first == value)
+			break;
+	}
+	return first;
 }
 
 template< class InputIt, class UnaryPredicate >
 InputIt find_if(InputIt first, InputIt last, UnaryPredicate p)
 {
-	//TODO
+	for (; first != last; ++first)
+	{
+		if (p(*first))
+			break;
+	}
+	return first;
 }
 
 template< class ForwardIt1, class ForwardIt2 >
 ForwardIt1 find_end(ForwardIt1 first, ForwardIt1 last,
 	ForwardIt2 s_first, ForwardIt2 s_last)
 {
-	//TODO
+	__find_end(first, last, s_first, s_last, 
+		iterator_category(first), iterator_category(s_first));
 }
+
+
+
 
 template< class ForwardIt1, class ForwardIt2, class BinaryPredicate >
 ForwardIt1 find_end(ForwardIt1 first, ForwardIt1 last,
