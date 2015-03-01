@@ -137,53 +137,181 @@ template< class ForwardIt1, class ForwardIt2 >
 ForwardIt1 find_first_of(ForwardIt1 first, ForwardIt1 last,
 	ForwardIt2 s_first, ForwardIt2 s_last)
 {
-	//TODO
+	for (; first != last; ++first)
+	{
+		for (ForwardIt2 it = s_first; it != s_last; ++it)
+		{
+			if (*it == *first)
+				return first;
+		}
+	}
 }
 
 template< class ForwardIt1, class ForwardIt2, class BinaryPredicate >
 ForwardIt1 find_first_of(ForwardIt1 first, ForwardIt1 last,
 	ForwardIt2 s_first, ForwardIt2 s_last, BinaryPredicate p)
 {
-	//TODO
+	for (; first != last; ++first)
+	{
+		for (ForwardIt2 it = s_first; it != s_last; ++it)
+		{
+			if (p(*it, *first))
+				return first;
+		}
+	}
 }
 
 template< class ForwardIt >
 ForwardIt adjacent_find(ForwardIt first, ForwardIt last)
 {
-	//TODO
+	if (first == last)
+		return first;
+	ForwardIt it = first;
+	++it;
+	for (; first != last; ++first, ++it)
+	{
+		if (*first == *it)
+			return first;
+	}
+	return last;
 }
 
 template< class ForwardIt, class BinaryPredicate>
 ForwardIt adjacent_find(ForwardIt first, ForwardIt last, BinaryPredicate p)
 {
-	//TODO
+	if (first == last)
+		return first;
+	ForwardIt it = first;
+	++it;
+	for (; first != last; ++first, ++it)
+	{
+		if (p(*first, *it))
+			return first;
+	}
+	return last;
 }
 
 template< class ForwardIt1, class ForwardIt2 >
 ForwardIt1 search(ForwardIt1 first, ForwardIt1 last,
 	ForwardIt2 s_first, ForwardIt2 s_last)
 {
-	//TODO
+	typename type_traits<ForwardIt1>::difference_type d1;
+	typename type_traits<ForwardIt2>::difference_type d2;
+	d1 = distance(first, last);
+	d2 = distance(s_first, s_last);
+	if (d1 < d2)
+		return last;
+	ForwardIt1 it = first;
+	ForwardIt2 s_it = s_first;
+
+	while (s_it != s_last)
+	{
+		if (*it == *s_it)
+		{
+			++it;
+			++s_it; 
+		}
+		else
+		{
+			if (d1 == d2)
+				return last;
+			else
+			{
+				it = ++first;
+				s_it = s_first;
+				--d1;
+			}
+		}
+	}
 }
 
 template< class ForwardIt1, class ForwardIt2, class BinaryPredicate >
 ForwardIt1 search(ForwardIt1 first, ForwardIt1 last,
 	ForwardIt2 s_first, ForwardIt2 s_last, BinaryPredicate p)
 {
-	//TODO
+	typename type_traits<ForwardIt1>::difference_type d1;
+	typename type_traits<ForwardIt2>::difference_type d2;
+	d1 = distance(first, last);
+	d2 = distance(s_first, s_last);
+	if (d1 < d2)
+		return last;
+	ForwardIt1 it = first;
+	ForwardIt2 s_it = s_first;
+
+	while (s_it != s_last)
+	{
+		if (p(*it, *s_it))
+		{
+			++it;
+			++s_it;
+		}
+		else
+		{
+			if (d1 == d2)
+				return last;
+			else
+			{
+				it = ++first;
+				s_it = s_first;
+				--d1;
+			}
+		}
+	}
 }
 
 template< class ForwardIt, class Size, class T >
 ForwardIt search_n(ForwardIt first, ForwardIt last, Size count, const T& value)
 {
-	//TODO
+	if (count <= 0)
+		return first;
+	else
+	{
+		first = find(first, last, value);
+		while (first != last)
+		{
+			Size n = count - 1;
+			ForwardIt i = first;
+			++i;
+			while (i != last && n != 0 && *i == value)
+			{
+				++i;
+				--n;
+			}
+			if (n == 0)
+				return first;
+			else
+				first = find(i, last, value);
+		}
+		return last;
+	}
 }
 
 template< class ForwardIt, class Size, class T, class BinaryPredicate >
 ForwardIt search_n(ForwardIt first, ForwardIt last, Size count, const T& value,
 	BinaryPredicate p)
 {
-	//TODO
+	if (count <= 0)
+		return first;
+	else
+	{
+		first = find(first, last, value, p);
+		while (first != last)
+		{
+			Size n = count - 1;
+			ForwardIt i = first;
+			++i;
+			while (i != last && n != 0 && p(*i, value))
+			{
+				++i;
+				--n;
+			}
+			if (n == 0)
+				return first;
+			else
+				first = find(i, last, value, p);
+		}
+		return last;
+	}
 }
 
 
