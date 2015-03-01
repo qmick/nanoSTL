@@ -129,7 +129,8 @@ template< class ForwardIt1, class ForwardIt2, class BinaryPredicate >
 ForwardIt1 find_end(ForwardIt1 first, ForwardIt1 last,
 	ForwardIt2 s_first, ForwardIt2 s_last, BinaryPredicate p)
 {
-	//TODO
+	__find_end(first, last, s_first, s_last, p, 
+		iterator_category(first), iterator_category(s_first));
 }
 
 template< class ForwardIt1, class ForwardIt2 >
