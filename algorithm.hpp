@@ -319,127 +319,177 @@ ForwardIt search_n(ForwardIt first, ForwardIt last, Size count, const T& value,
 template< class InputIt, class OutputIt >
 OutputIt copy(InputIt first, InputIt last, OutputIt d_first)
 {
-	//TODO
+	__copy(first, last, iterator_category(first));
 }
 
 template< class BidirIt1, class BidirIt2 >
 BidirIt2 copy_backward(BidirIt1 first, BidirIt1 last, BidirIt2 d_last)
 {
-	//TODO
+	while (first != last) {
+		*(--d_last) = *(--last);
+	}
+	return d_last;
 }
 
 template< class ForwardIt, class T >
 void fill(ForwardIt first, ForwardIt last, const T& value)
 {
-	//TODO
+	for (; first != last; ++first)
+		*first = value;
 }
 
 template< class OutputIt, class Size, class T >
 void fill_n(OutputIt first, Size count, const T& value)
 {
-	//TODO
+	for (; count > 0; --count, ++first)
+		*first = value;
 }
 
 template< class InputIt, class OutputIt, class UnaryOperation >
-OutputIt transform(InputIt first1, InputIt last1, OutputIt d_first,
+OutputIt transform(InputIt first, InputIt last, OutputIt d_first,
 	UnaryOperation unary_op)
 {
-	//TODO
+	for (; first != last; ++first, ++d_first)
+		*d_first = unary_op(first);
+	return d_first;
 }
 
 template< class InputIt1, class InputIt2, class OutputIt, class BinaryOperation >
-OutputIt transform(InputIt1 first1, InputIt1 last1, InputIt2 first2,
+OutputIt transform(InputIt1 first1, InputIt1 last, InputIt2 first2,
 	OutputIt d_first, BinaryOperation binary_op)
 {
-	//TODO
+	for (; first1 != last; ++first1, ++first2, ++d_first)
+		*d_first = binary_op(first1, first2);
+	return d_first;
 }
 
 template< class ForwardIt, class Generator >
 void generate(ForwardIt first, ForwardIt last, Generator g)
 {
-	//TODO
+	for (; first != last; ++first)
+		*first = g();
 }
 
 template< class OutputIt, class Size, class Generator >
 void generate_n(OutputIt first, Size count, Generator g)
 {
-	//TODO
+	for (; count > 0; --count, ++first)
+		first = g();
 }
 
 template< class ForwardIt, class T >
 ForwardIt remove(ForwardIt first, ForwardIt last, const T& value)
 {
-	//TODO
+	first = find(first, last, value);
+	ForwardIt next = first;
+	return first = last ? first : remove_copy(++next, last, first, value);
 }
 
 template< class ForwardIt, class UnaryPredicate >
 ForwardIt remove_if(ForwardIt first, ForwardIt last, UnaryPredicate p)
 {
-	//TODO
+	first = find_if(first, last, p);
+	ForwardIt next = first;
+	return first = last ? first : remove_copy_if(++next, last, first, p);
 }
 
 template< class InputIt, class OutputIt, class T >
 OutputIt remove_copy(InputIt first, InputIt last, OutputIt d_first,
 	const T& value)
 {
-	//TODO
+	for (; first != last; ++first)
+	{
+		if (*first != value)
+		{
+			*d_first = *first;
+			++d_first;
+		}
+	}
+	return d_first;
 }
 
 template< class InputIt, class OutputIt, class UnaryPredicate >
 OutputIt remove_copy_if(InputIt first, InputIt last, OutputIt d_first,
 	UnaryPredicate p)
 {
-	//TODO
+	for (; first != last; ++first)
+	{
+		if (!p(*first))
+		{
+			*d_first = *first;
+			++d_first;
+		}
+	}
 }
 
 template< class ForwardIt, class T >
 void replace(ForwardIt first, ForwardIt last, const T& old_value, const T& new_value)
 {
-	//TODO
+	for (; first != last; ++first)
+	{
+		if (*first == old_value)
+			*first = new_value;
+	}
 }
 
 template< class ForwardIt, class UnaryPredicate, class T >
 void replace_if(ForwardIt first, ForwardIt last, UnaryPredicate p, const T& new_value)
 {
-	//TODO
+	for (; first != last; ++first)
+	{
+		if (p(*first))
+			*first = new_value;
+	}
 }
 
 template< class InputIt, class OutputIt, class T >
 OutputIt replace_copy(InputIt first, InputIt last, OutputIt d_first,
 	const T& old_value, const T& new_value)
 {
-	//TODO
+	for (; first != last; ++first, ++d_first)
+	{
+		*first = old_value ? new_value : *first;
+		*d_first = *first;
+	}
 }
 
 template< class InputIt, class OutputIt, class UnaryPredicate, class T >
 OutputIt replace_copy_if(InputIt first, InputIt last, OutputIt d_first,
 	UnaryPredicate p, const T& new_value)
 {
-	//TODO
+	for (; first != last; ++first, ++d_first)
+	{
+		*first = p(*first) ? new_value : *first;
+		*d_first = *first;
+	}
 }
 
 template< class T >
 void swap(T& a, T& b)
 {
-	//TODO
+	T temp;
+	temp = a;
+	a = b;
+	b = temp;
 }
 
 template< class ForwardIt1, class ForwardIt2 >
-ForwardIt2 swap_ranges(ForwardIt1 first1, ForwardIt1 last1, ForwardIt2 first2)
+ForwardIt2 swap_ranges(ForwardIt1 first1, ForwardIt1 last, ForwardIt2 first2)
 {
-	//TODO
+	for (; first1 != last; ++first1, ++first2)
+		iter_swap(first1, first2);
 }
 
 template< class ForwardIt1, class ForwardIt2 >
 void iter_swap(ForwardIt1 a, ForwardIt2 b)
 {
-	//TODO
+	swap(*a, *b);
 }
 
 template< class BidirIt >
 void reverse(BidirIt first, BidirIt last)
 {
-	//TODO
+	__reverse(first, last, iterator_category(first));
 }
 
 template< class BidirIt, class OutputIt >
