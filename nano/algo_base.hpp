@@ -168,7 +168,52 @@ void __reverse(BidirIt first, BidirIt last, bidirectional_iterator_tag)
 	}
 }
 
+template< class RanIt, class Distance >
+inline void __rotate(RanIt first, RanIt middle, RanIt last,
+	Distance*, random_access_iterator_tag)
+{
+	Distance n = 
+}
 
+template< class EuclideanRingElement >
+EuclideanRingElement __gcd(EuclideanRingElement m, EuclideanRingElement n)
+{
+	while (n != 0)
+	{
+		EuclideanRingElement t = m % n;
+		m = n;
+		n = t;
+	}
+	return m;
+}
+
+template< class BidIt, class Distance >
+inline void __rotate(BidIt first, BidIt middle, BidIt last,
+	Distance*, bidirectional_iterator_tag)
+{
+	reverse(first, middle);
+	reverse(middle, last);
+	reverse(first, last);
+}
+
+template< class ForwardIt, class Distance >
+inline void __rotate(ForwardIt first, ForwardIt middle, ForwardIt last,
+	Distance*, forward_iterator_tag)
+{
+	for (ForwardIt i = middle;;)
+	{
+		iter_swap(first, i);
+		++first;
+		++i;
+		if (first == middle)
+		{
+			if (i == last) return;
+			middle = i;
+		}
+		else if (i == last)
+			i = middle;
+	}
+}
 
 
 }

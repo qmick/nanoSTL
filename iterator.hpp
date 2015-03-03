@@ -176,6 +176,14 @@ iterator_category(const It&)
 	return category();
 }
 
+template< class It >
+inline typename iterator_traits<It>::difference_type
+difference_type(const It&)
+{
+	typedef typename iterator_traits<It>::difference_type difference_type;
+	return difference_type();
+}
+
 template< class InputIt, class Distance >
 inline void advance(InputIt& it, Distance n)
 {

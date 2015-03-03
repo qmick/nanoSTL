@@ -495,13 +495,21 @@ void reverse(BidirIt first, BidirIt last)
 template< class BidirIt, class OutputIt >
 OutputIt reverse_copy(BidirIt first, BidirIt last, OutputIt d_first)
 {
-	//TODO
+	while (first != last)
+	{
+		--last;
+		*d_first = *last;
+		++d_first;
+	}
+	return d_first;
 }
 
 template< class ForwardIt >
-void rotate(ForwardIt first, ForwardIt n_first, ForwardIt last)
+void rotate(ForwardIt first, ForwardIt middle, ForwardIt last)
 {
-	//TODO
+	if (first == middle || middle == last) return;
+	__rotate(first, middle, last, 
+		difference_type(first), iterator_category(first));
 }
 
 template< class ForwardIt, class OutputIt >
