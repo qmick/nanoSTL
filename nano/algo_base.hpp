@@ -187,6 +187,24 @@ EuclideanRingElement __gcd(EuclideanRingElement m, EuclideanRingElement n)
 	return m;
 }
 
+template< class RanIt, class Dictance, class T >
+void __rotate_cycle(RanIt first, RanIt last, RanIt initial, Distance shift, T*)
+{
+	T value = *initial;
+	RanIt ptr1 = initial;
+	RanIt ptr2 = ptr1 + shift;
+	while (ptr2 != initial)
+	{
+		*ptr1 = *ptr2;
+		ptr1 = ptr2;
+		if (last - ptr2 > shift)
+			ptr2 += shift;
+		else
+			ptr2 = first + (shift - (last - ptr2));
+	}
+	*ptr1 = value;
+}
+
 template< class BidIt, class Distance >
 inline void __rotate(BidIt first, BidIt middle, BidIt last,
 	Distance*, bidirectional_iterator_tag)
