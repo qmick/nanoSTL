@@ -172,7 +172,12 @@ template< class RanIt, class Distance >
 inline void __rotate(RanIt first, RanIt middle, RanIt last,
 	Distance*, random_access_iterator_tag)
 {
-	Distance n = 
+	typedef typename iterator_traits<RanIt>::value_type value_type;
+	Distance n = __gcd(last - first, middle - first);
+	while (n--)
+	{
+		__rotate_cycle(first, last, first + n, middle - first, value_type());
+	}
 }
 
 template< class EuclideanRingElement >
