@@ -3,6 +3,7 @@
 
 #include "iterator.hpp"
 #include "utility.hpp"
+#include "functional.hpp"
 #include "nano/algo_base.hpp"
 
 namespace nano {
@@ -536,13 +537,17 @@ ForwardIt unique(ForwardIt first, ForwardIt last, BinaryPredicate p)
 template< class InputIt, class OutputIt >
 OutputIt unique_copy(InputIt first, InputIt last, OutputIt d_first)
 {
-	//TODO
+	typename iterator_traits<InputIt>::value_type value_type;
+	return __unique_copy(first, last, d_first, 
+		less<value_type>, iterator_category(first));
 }
 
 template< class InputIt, class OutputIt, class BinaryPredicate >
-OutputIt unique_copy(InputIt first, InputIt last, OutputIt d_first, BinaryPredicate p)
+OutputIt unique_copy(InputIt first, InputIt last, 
+	OutputIt d_first, BinaryPredicate p)
 {
-	//TODO
+	return __unique_copy(first, last, d_first, p, 
+		iterator_category(first));
 }
 
 
