@@ -238,6 +238,34 @@ inline void __rotate(ForwardIt first, ForwardIt middle, ForwardIt last,
 	}
 }
 
+template< class InputIt, class ForwardIt >
+ForwardIt __unique_copy(InputIt first, InputIt last, ForwardIt d_first, 
+	forward_iterator_tag)
+{
+	*d_first = *first;
+	while (++first != last)
+	{
+		if (*d_first != *first)
+			*++d_first = *first;
+	}
+	return ++d_first;
+}
+
+template< class InputIt, class OutputIt, class T >
+OutputIt __unique_copy(InputIt first, InputIt last, OutputIt d_first, T*)
+{
+	T value = *first;
+	*d_first = value;
+	while (++first != last)
+	{
+		if (value != first)
+		{
+			value = *first;
+			*++d_first = value;
+		}
+	}
+	return ++d_first;
+}
 
 }
 

@@ -516,19 +516,21 @@ template< class ForwardIt, class OutputIt >
 OutputIt rotate_copy(ForwardIt first, ForwardIt n_first,
 	ForwardIt last, OutputIt d_first)
 {
-	//TODO
+	return copy(first, middle, copy(middle, last, d_last));
 }
 
 template< class ForwardIt >
 ForwardIt unique(ForwardIt first, ForwardIt last)
 {
-	//TODO
+	first = adjacent_find(first, last);
+	return unique_copy(first, last, first);
 }
 
 template< class ForwardIt, class BinaryPredicate >
 ForwardIt unique(ForwardIt first, ForwardIt last, BinaryPredicate p)
 {
-	//TODO
+	first = adjacent_find(first, last, p);
+	return unique_copy(first, last, first, p);
 }
 
 template< class InputIt, class OutputIt >
