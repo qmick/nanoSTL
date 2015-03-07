@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __UTILITY_HPP__
+#define __UTILITY_HPP__
 
 namespace nano {
 
@@ -40,3 +41,6 @@ pair<T1, T2> make_pair(T1 t, T2 u)
 }
 
 }
+
+
+#endif

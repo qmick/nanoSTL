@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __MAP_HPP__
+#define __MAP_HPP__
 
 #include "memory.hpp"
 #include "iterator.hpp"
@@ -33,3 +34,5 @@ public:
 };
 
 }
+
+#endif

@@ -1,4 +1,6 @@
-#pragma once
+#ifndef __SET_HPP__
+#define __SET_HPP__
+
 #include "memory.hpp"
 #include "iterator.hpp"
 #include "utility.hpp"
@@ -413,3 +415,5 @@ public:
 };
 
 }
+
+#endif

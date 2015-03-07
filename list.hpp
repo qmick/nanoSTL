@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __LIST_HPP__
+#define __LIST_HPP__
 #include "memory.hpp"
 #include "iterator.hpp"
 
@@ -179,3 +180,5 @@ public:
 };
 
 }
+
+#endif
