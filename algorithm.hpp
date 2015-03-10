@@ -323,8 +323,8 @@ OutputIt copy(InputIt first, InputIt last, OutputIt d_first)
 	__copy(first, last, iterator_category(first));
 }
 
-template< class BidirIt1, class BidirIt2 >
-BidirIt2 copy_backward(BidirIt1 first, BidirIt1 last, BidirIt2 d_last)
+template< class BidIt1, class BidIt2 >
+BidIt2 copy_backward(BidIt1 first, BidIt1 last, BidIt2 d_last)
 {
 	while (first != last) {
 		*(--d_last) = *(--last);
@@ -487,14 +487,14 @@ void iter_swap(ForwardIt1 a, ForwardIt2 b)
 	swap(*a, *b);
 }
 
-template< class BidirIt >
-void reverse(BidirIt first, BidirIt last)
+template< class BidIt >
+void reverse(BidIt first, BidIt last)
 {
 	__reverse(first, last, iterator_category(first));
 }
 
-template< class BidirIt, class OutputIt >
-OutputIt reverse_copy(BidirIt first, BidirIt last, OutputIt d_first)
+template< class BidIt, class OutputIt >
+OutputIt reverse_copy(BidIt first, BidIt last, OutputIt d_first)
 {
 	while (first != last)
 	{
@@ -553,77 +553,87 @@ OutputIt unique_copy(InputIt first, InputIt last,
 
 
 //Partitioning operations
-template< class BidirIt, class UnaryPredicate >
-BidirIt partition(BidirIt first, BidirIt last, UnaryPredicate p)
+template< class BidIt, class UnaryPredicate >
+BidIt partition(BidIt first, BidIt last, UnaryPredicate p)
 {
-	//TODO
+	while (first < last)
+	{
+		while (first < last && p(*first))
+			++first;
+		if (first == last--) break;
+		while (first < last && !p(*last))
+			--last;
+		if (first == last) break;
+		iter_swap(first, last);
+	}
+	return first;
 }
 
-template< class BidirIt, class UnaryPredicate >
-BidirIt stable_partition(BidirIt first, BidirIt last, UnaryPredicate p)
+template< class BidIt, class UnaryPredicate >
+BidIt stable_partition(BidIt first, BidIt last, UnaryPredicate p)
 {
-	//TODO
+	
 }
 
 
 //Sorting operations
-template< class RandomIt >
-void sort(RandomIt first, RandomIt last)
+template< class RanIt >
+void sort(RanIt first, RanIt last)
 {
 	//TODO
 }
 
-template< class RandomIt, class Compare >
-void sort(RandomIt first, RandomIt last, Compare comp)
+template< class RanIt, class Compare >
+void sort(RanIt first, RanIt last, Compare comp)
 {
 	//TODO
 }
 
-template< class RandomIt >
-void partial_sort(RandomIt first, RandomIt middle, RandomIt last)
+template< class RanIt >
+void partial_sort(RanIt first, RanIt middle, RanIt last)
 {
 	//TODO
 }
 
-template< class RandomIt, class Compare >
-void partial_sort(RandomIt first, RandomIt middle, RandomIt last, Compare comp)
+template< class RanIt, class Compare >
+void partial_sort(RanIt first, RanIt middle, RanIt last, Compare comp)
 {
 	//TODO
 }
 
-template< class InputIt, class RandomIt >
-RandomIt partial_sort_copy(InputIt first, InputIt last, RandomIt d_first, RandomIt d_last)
+template< class InputIt, class RanIt >
+RanIt partial_sort_copy(InputIt first, InputIt last, RanIt d_first, RanIt d_last)
 {
 	//TODO
 }
 
-template< class InputIt, class RandomIt, class Compare >
-RandomIt partial_sort_copy(InputIt first, InputIt last,
-	RandomIt d_first, RandomIt d_last, Compare comp)
+template< class InputIt, class RanIt, class Compare >
+RanIt partial_sort_copy(InputIt first, InputIt last,
+	RanIt d_first, RanIt d_last, Compare comp)
 {
 	//TODO
 }
 
-template< class RandomIt >
-void stable_sort(RandomIt first, RandomIt last)
+template< class RanIt >
+void stable_sort(RanIt first, RanIt last)
 {
 	//TODO
 }
 
-template< class RandomIt, class Compare >
-void stable_sort(RandomIt first, RandomIt last, Compare comp)
+template< class RanIt, class Compare >
+void stable_sort(RanIt first, RanIt last, Compare comp)
 {
 	//TODO
 }
 
-template< class RandomIt >
-void nth_element(RandomIt first, RandomIt nth, RandomIt last)
+template< class RanIt >
+void nth_element(RanIt first, RanIt nth, RanIt last)
 {
 	//TODO
 }
 
-template< class RandomIt, class Compare >
-void nth_element(RandomIt first, RandomIt nth, RandomIt last, Compare comp)
+template< class RanIt, class Compare >
+void nth_element(RanIt first, RanIt nth, RanIt last, Compare comp)
 {
 	//TODO
 }
@@ -696,14 +706,14 @@ OutputIt merge(InputIt1 first1, InputIt1 last1,
 	//TODO
 }
 
-template< class BidirIt >
-void inplace_merge(BidirIt first, BidirIt middle, BidirIt last)
+template< class BidIt >
+void inplace_merge(BidIt first, BidIt middle, BidIt last)
 {
 	//TODO
 }
 
-template< class BidirIt, class Compare>
-void inplace_merge(BidirIt first, BidirIt middle, BidirIt last, Compare comp)
+template< class BidIt, class Compare>
+void inplace_merge(BidIt first, BidIt middle, BidIt last, Compare comp)
 {
 	//TODO
 }
@@ -791,50 +801,50 @@ OutputIt set_union(InputIt1 first1, InputIt1 last1,
 }
 
 //Heap operations
-template< class RandomIt >
-void make_heap(RandomIt first, RandomIt last)
+template< class RanIt >
+void make_heap(RanIt first, RanIt last)
 {
 	//TODO
 }
 
-template< class RandomIt, class Compare >
-void make_heap(RandomIt first, RandomIt last, Compare comp)
+template< class RanIt, class Compare >
+void make_heap(RanIt first, RanIt last, Compare comp)
 {
 	//TODO
 }
 
-template< class RandomIt >
-void push_heap(RandomIt first, RandomIt last)
+template< class RanIt >
+void push_heap(RanIt first, RanIt last)
 {
 	//TODO
 }
 
-template< class RandomIt, class Compare >
-void push_heap(RandomIt first, RandomIt last, Compare comp)
+template< class RanIt, class Compare >
+void push_heap(RanIt first, RanIt last, Compare comp)
 {
 	//TODO
 }
 
-template< class RandomIt >
-void pop_heap(RandomIt first, RandomIt last)
+template< class RanIt >
+void pop_heap(RanIt first, RanIt last)
 {
 	//TODO
 }
 
-template< class RandomIt, class Compare >
-void pop_heap(RandomIt first, RandomIt last, Compare comp)
+template< class RanIt, class Compare >
+void pop_heap(RanIt first, RanIt last, Compare comp)
 {
 	//TODO
 }
 
-template< class RandomIt >
-void sort_heap(RandomIt first, RandomIt last)
+template< class RanIt >
+void sort_heap(RanIt first, RanIt last)
 {
 	//TODO
 }
 
-template< class RandomIt, class Compare >
-void sort_heap(RandomIt first, RandomIt last, Compare comp)
+template< class RanIt, class Compare >
+void sort_heap(RanIt first, RanIt last, Compare comp)
 {
 	//TODO
 }
@@ -904,26 +914,26 @@ bool lexicographical_compare(InputIt1 first1, InputIt1 last1,
 	//TODO
 }
 
-template< class BidirIt >
-bool next_permutation(BidirIt first, BidirIt last)
+template< class BidIt >
+bool next_permutation(BidIt first, BidIt last)
 {
 	//TODO
 }
 
-template< class BidirIt, class Compare >
-bool next_permutation(BidirIt first, BidirIt last, Compare comp)
+template< class BidIt, class Compare >
+bool next_permutation(BidIt first, BidIt last, Compare comp)
 {
 	//TODO
 }
 
-template< class BidirIt >
-bool prev_permutation(BidirIt first, BidirIt last)
+template< class BidIt >
+bool prev_permutation(BidIt first, BidIt last)
 {
 	//TODO
 }
 
-template< class BidirIt, class Compare >
-bool prev_permutation(BidirIt first, BidirIt last, Compare comp)
+template< class BidIt, class Compare >
+bool prev_permutation(BidIt first, BidIt last, Compare comp)
 {
 	//TODO
 }
