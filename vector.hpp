@@ -307,6 +307,7 @@ public:
 };
 
 template< class Allocator >
+//Bit vector of high space efficiency
 class vector< bool, Allocator >
 {
 

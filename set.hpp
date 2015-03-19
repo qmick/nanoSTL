@@ -5,6 +5,14 @@
 #include "iterator.hpp"
 #include "utility.hpp"
 
+#ifdef USE_AVL_TREE
+#include "nano/AVL_tree.hpp"
+typedef AVL_tree tree;
+#else
+#include "nano/R_B_tree.hpp"
+typedef rb_tree tree;
+#endif
+
 namespace nano
 {
 //TODO:default parameter of Compare
@@ -23,8 +31,8 @@ public:
 	typedef typename Allocator::const_reference const_reference;
 	typedef typename Allocator::pointer pointer;
 	typedef typename Allocator::const_pointer const_pointer;
-	typedef nano::iterator<nano::bidirectional_iterator_tag, Key> iterator;
-	typedef nano::iterator<nano::bidirectional_iterator_tag, Key, const Key*, const Key&> const_iterator;
+	typedef nano::iterator<bidirectional_iterator_tag, Key> iterator;
+	typedef nano::iterator<bidirectional_iterator_tag, Key, const Key*, const Key&> const_iterator;
 	typedef nano::reverse_iterator<iterator> reverse_iterator;
 	typedef nano::reverse_iterator<const_iterator> const_reverse_iterator;	
 
