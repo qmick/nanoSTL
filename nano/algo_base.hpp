@@ -116,12 +116,20 @@ inline OutputIt __copy(const InputIt first, const InputIt last, OutputIt d_last,
 		*d_last = *first;
 }
 
-template< class T1*, class T2* >
-//Copy content pointed by pointer(continuous data)
-inline T2* __copy_r(const T1 *first, const T1 *last, T2 *d_last)
+template< class T >
+//Copy content pointed by const pointer(continuous data)
+inline T* __copy_r(const T *first, const T *last, T *d_last)
 {
 	typedef typename type_traits<*first>::has_trivial_assignment_operator htao;
-	return __copy_r_t(first, last, d_last, htao());
+	return __copy_r_trivial(first, last, d_last, htao());
+}
+
+template< class T >
+//Copy content pointed by pointer(continuous data)
+inline T* __copy_r(T *first, T *last, T *d_last)
+{
+	typedef typename type_traits<*first>::has_trivial_assignment_operator htao;
+	return __copy_r_trivial(first, last, d_last, htao());
 }
 
 template< class RanIt, class OutputIt, class Distance >
@@ -130,21 +138,24 @@ inline OutputIt __copy_r(RanIt first, RanIt last, OutputIt d_last)
 {
 	for (Distance i = last - first; i > 0; --i, ++first, ++d_last)
 		*d_last = *first;
+	return d_last;
 }
 
-template< class T1*, class T2* >
+template< class T >
 //Copy content pointed by pointer(continuous data) and has trivial assignment operator
-inline T2* __copy_r_t(const T1 *first, const T1 *last, T2 *d_last, true_type)
+inline T* __copy_r_trivial(const T *first, const T *last, T *d_last, true_type)
 {
 	memmove(d_last, first, sizeof(T1) * (last - first));
 	return d_first + (last - first);
 }
 
-template< class T1*, class T2* >
+template< class T >
 //Copy content pointed by pointer(continuous data) but don't has trivial assignment operator
-inline T2* __copy_r_t(const T1 *first, const T1 *last, T2 *d_last, false_type)
+inline T* __copy_r_trivial(const T *first, const T *last, T *d_last, false_type)
 {
-	return __copy_r(first, last, d_last);
+	for (int i = last - first; i > 0; --i, ++first, ++d_last)
+		*d_last = *first;
+	return d_last;
 }
 
 template< class RanIt >

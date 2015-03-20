@@ -320,7 +320,8 @@ ForwardIt search_n(ForwardIt first, ForwardIt last, Size count, const T& value,
 template< class InputIt, class OutputIt >
 OutputIt copy(InputIt first, InputIt last, OutputIt d_first)
 {
-	__copy(first, last, iterator_category(first));
+	if (distance(first, last) > 0)
+		__copy(first, last, iterator_category(first));
 }
 
 template< class BidIt1, class BidIt2 >

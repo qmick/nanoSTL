@@ -5,6 +5,7 @@
 #include "iterator.hpp"
 #include "algorithm.hpp"
 #include <stdexcept>
+#include <cassert>
 
 namespace nano {
 
@@ -60,7 +61,7 @@ public:
 
     ~vector()
     {
-		destroy(begin(), end());
+		destroy(my_first, my_last);
 		Allocator::deallocate(my_first, capacity());
     }
 
@@ -95,7 +96,7 @@ public:
     //Element access
     reference at(size_type pos)
     {
-		if (pos < size())
+		if (pos < size() && pos >= my_first)
 			return (*this)[pos];
 		else
 			throw std::out_of_range;
@@ -103,7 +104,7 @@ public:
 
     const_reference at(size_type pos) const
     {
-		if (pos < size())
+		if (pos < size() && pos >= my_first)
 			return (*this)[pos];
 		else
 			throw std::out_of_range;
@@ -111,32 +112,32 @@ public:
 
     reference operator[](size_type pos)
     {
-		return *(begin() + pos);
+		return *(my_first + pos);
     }
 
     const_reference operator[](size_type pos) const
     {
-		return *(begin() + pos);
+		return *(my_first + pos);
     }
 
     reference front()
     {
-		return *begin();
+		return *my_first;
     }
 
     const_reference front()  const
     {
-		return *begin();
+		return *my_first;
     }
 
     reference back()
     {
-		return *(end() - 1);
+		return *(my_last - 1);
     }
 
     const_reference back() const
     {
-		return *(end() - 1);
+		return *(my_last - 1);
 	}
 
     //Iterators
@@ -158,12 +159,12 @@ public:
 
     bool empty() const
     {
-		return begin() == end();
+		return my_first == my_last;
     }
 
     size_type size() const
 	{
-		return size_type(end() - begin());
+		return size_type(my_last - my_first);
 	}
 
     size_type max_size() const
@@ -173,13 +174,12 @@ public:
 
     void reserve(size_type new_cap)
     {
-		//TODO
 		if (new_cap > this->capacity())
 		{
 			pointer temp_first = Allocator::allocate(new_cap);
 			try
 			{
-				iterator temp_last = uninitialized_copy(begin(), end(), temp);
+				pointer temp_last = uninitialized_copy(my_first, my_last, temp_first);
 				destroy(begin(), end());
 				Allocator::deallocate(my_first, capacity());
 				my_first = temp_first;
@@ -188,9 +188,9 @@ public:
 			}
 			catch (...)
 			{
+				//If copy operation fails, memory must be deallocated
 				Allocator::deallocate(temp_first, new_cap);
 			}
-
 		}
     }
 
@@ -202,43 +202,144 @@ public:
     //Modifiers
     void clear()
     {
-		erase(begin(), end());
+		erase(my_first, my_last);
     }
 
     iterator insert(iterator pos, const T& value)
     {
+		//pos should be within range
+		assert(pos - my_first <= size() && pos >= my_first);
+
 		if (size() + 1 <= capacity())
+		{			
+			copy_backward(my_first, my_last, my_last + 1);
+			::new((void *) pos) T(value);
+			return pos;
+		}
+		else
 		{
-			
+			pointer temp_first = Allocator::allocate(2 * size());
+			pointer mid, temp_last;
+			try
+			{
+				mid = uninitialized_copy(my_first, pos, temp_first);
+				temp_last = uninitialized_copy(pos, my_last, mid + 1);
+			}
+			catch (...)
+			{
+				//If copy operation fails, memory must be deallocated
+				Allocator::deallocate(temp_first, 2 * size());
+				return pos;
+			}
+
+			::new((void *) mid) T(value);
+			destroy(begin(), end());
+			Allocator::deallocate(my_first, capacity());
+			my_first = temp_first;
+			my_last = temp_last;
+			return mid;
 		}
     }
 
+
     iterator insert(iterator pos, size_type count, const T& value)
     {
-        //TODO
+		assert(pos - my_first <= size() && pos > my_first);
+
+		if (count == 0)
+			return pos;
+
+		if (size() + count <= capacity())
+		{
+			copy_backward(my_first, my_last, my_last + count);
+			uninitialized_fill_n(pos, count, value);
+		}
+		else
+		{
+			size_t expected_size = max(capacity() + count, 2 * capacity());
+			pointer temp_first = Allocator::allocate(expected_size);
+			pointer mid, temp_last;
+			try
+			{
+				mid = uninitialized_copy(my_first, pos, temp_first);
+				temp_last = uninitialized_copy(pos, my_last, mid + count);
+				uninitialized_fill_n(mid, mid + count, value);
+			}
+			catch (...)
+			{
+				//If copy operation fails, memory must be deallocated
+				Allocator::deallocate(temp_first, expected_size);
+				return pos;
+			}
+
+			destroy(begin(), end());
+			Allocator::deallocate(my_first, capacity());
+			my_first = temp_first;
+			my_last = temp_last;
+			return mid;
+		}
     }
 
     template <class InputIt>
     iterator insert(iterator pos, InputIt first, InputIt last)
-    {
-        //TODO
+    {		
+		assert(pos - my_first <= size() && pos > my_first);
+
+		size_t count = distance(first, last);
+
+		if (count == 0)
+			return pos;
+
+		if (size() + count <= capacity())
+		{
+			copy_backward(my_first, my_last, my_last + count);
+			uninitialized_copy(first, last, pos);
+		}
+		else
+		{
+			size_t expected_size = max(capacity() + count, 2 * capacity());
+			pointer temp_first = Allocator::allocate(expected_size);
+			pointer mid, temp_last;
+
+			try
+			{
+				mid = uninitialized_copy(my_first, pos, temp_first);
+				temp_last = uninitialized_copy(pos, my_last, mid + count);
+				uninitialized_copy(first, last, mid);
+			}
+			catch (...)
+			{
+				//If copy operation fails, memory must be deallocated
+				Allocator::deallocate(temp_first, expected_size);
+				return pos;
+			}
+			
+			destroy(begin(), end());
+			Allocator::deallocate(my_first, capacity());
+
+			my_first = temp_first;
+			my_last = temp_last;
+			return mid;
+		}
     }
 
     iterator erase(iterator pos)
     {
-		destroy(pos);
-		if (pos + 1 != end())
-			memmove(pos, pos + 1, my_last - pos - 1);
-		--my_last;
+		if (pos >= my_last && pos < my_last)
+		{
+			pos->~T();
+			copy(pos + 1, my_last, pos);
+			--my_last;
+		}
 		return pos;
     }
 
     iterator erase(iterator first, iterator last)
     {
-		if (first < last)
+		if (first < last && first >= my_first && last < my_last)
 		{
 			destroy(first, last);
-			memmove(first, last, my_last - last - 1);
+			copy(last, my_last, first);
 			my_last -= last - first;
 		}
 		return first;
@@ -246,28 +347,30 @@ public:
 
     void push_back(const T& value)
     {
-        //TODO
+		insert(my_last, value);
     }
 
     void pop_back()
     {
 		--my_last;
-		destroy(my_last + 1);
+		destroy(my_last);
     }
 
-    void resize(size_type count)
+	void resize(size_type count, T value = T())
     {
-        //TODO
-    }
-
-    void resize(size_type count, const value_type& value)
-    {
-        //TODO
+		if (count > size())
+		{
+			temp_last = my_last;
+			reserve(count);
+			uninitialized_fill_n(temp_last, count - (temp_last - my_last), value);
+		}
     }
 
     void swap(my_type& other)
     {
-        //TODO
+		nano::swap(my_first, other.my_first);
+		nano::swap(my_last, other.my_last);
+		nano::swap(my_end, other.my_end);
 	}
 
 	private:

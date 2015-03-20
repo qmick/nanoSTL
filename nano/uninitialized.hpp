@@ -7,6 +7,14 @@
 namespace nano {
 
 
+//uninitialized_copy for POD that is continuously stored 
+template< class T1, class T2 >
+inline T2* __uninitialized_copy(T1* first, T1* last, T2* d_first, true_type)
+{
+	memmove(d_first, first, last - first);
+	return d_first + (last - first);
+}
+
 //uninitialized_copy for POD
 template< class InputIt, class ForwardIt >
 inline ForwardIt __uninitialized_copy(InputIt first, InputIt last, ForwardIt d_first, true_type)
