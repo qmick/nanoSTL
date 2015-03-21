@@ -1,7 +1,19 @@
-#ifndef __CONSTRUCT_HPP__
-#define __CONSTRUCT_HPP__
+#ifndef __NANO_CONSTRUCT_HPP__
+#define __NANO_CONSTRUCT_HPP__
 
 namespace nano {
+
+template< class T1, class T2 >
+inline void construct(T1 *p, T2 &value)
+{
+	new(p) T1(value);
+}
+
+template< class T1, class T2 >
+inline void construct(T1 *p)
+{
+	new(p) T1();
+}
 
 template< class ForwardIt, class T >
 //Construct range of elements
@@ -13,7 +25,7 @@ inline void construct(ForwardIt first, ForwardIt last, const T &value)
 	{
 		for (; current != last; ++current)
 		{
-			::new((void*) (&*current)) Value(value);
+			new((void*) (&*current)) Value(value);
 		}
 	}
 	catch (...)
@@ -29,8 +41,6 @@ inline void destroy(T *ptr)
 	ptr->~T();
 }
 
-template < class T >
-inline void destroy(T *ptr) {}
 
 template< class ForwardIt >
 //Destroy range of elements

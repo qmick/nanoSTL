@@ -9,8 +9,7 @@
 #include "nano/AVL_tree.hpp"
 typedef AVL_tree tree;
 #else
-#include "nano/R_B_tree.hpp"
-typedef rb_tree tree;
+#include "nano/rb_tree.hpp"
 #endif
 
 namespace nano
@@ -118,7 +117,7 @@ public:
 		//TODO:set clear
 	}
 
-	nano::pair<iterator, bool> insert(const value_type& value)
+	pair<iterator, bool> insert(const value_type& value)
 	{
 		//TODO:set insert1
 	}
@@ -381,7 +380,7 @@ public:
 		//TODO
 	}
 
-	std::pair<iterator,iterator> equal_range( const Key& key )
+	pair<iterator,iterator> equal_range( const Key& key )
 	{
 		//TODO
 	}
@@ -406,7 +405,7 @@ public:
 		//TODO
 	}
 
-	std::pair<const_iterator,const_iterator> equal_range( const Key& key ) const
+	pair<const_iterator,const_iterator> equal_range( const Key& key ) const
 	{
 		//TODO
 	}
@@ -416,7 +415,7 @@ public:
 		//TODO
 	}
 
-	std::multiset::value_compare value_comp() const
+	value_compare value_comp() const
 	{
 		//TODO
 	}

@@ -1,5 +1,5 @@
-#ifndef __ALGO_BASE_HPP__
-#define __ALGO_BASE_HPP__
+#ifndef __NANO_ALGO_BASE_HPP__
+#define __NANO_ALGO_BASE_HPP__
 
 #include "../iterator.hpp"
 
@@ -203,7 +203,7 @@ EuclideanRingElement __gcd(EuclideanRingElement m, EuclideanRingElement n)
 	return m;
 }
 
-template< class RanIt, class Dictance, class T >
+template< class RanIt, class Dictance, class T, class Distance >
 void __rotate_cycle(RanIt first, RanIt last, RanIt initial, Distance shift, T*)
 {
 	T value = *initial;

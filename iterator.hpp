@@ -162,7 +162,7 @@ public:
 		return (*this);
 	}
 
-	reference operator[](different_type n) const
+	reference operator[](difference_type n) const
 	{
 		return (*(*this + n));
 	}

@@ -1,5 +1,5 @@
-#ifndef __UNINITIALIZED_HPP__
-#define __UNINITIALIZED_HPP__
+#ifndef __NANO_UNINITIALIZED_HPP__
+#define __NANO_UNINITIALIZED_HPP__
 
 #include "type_traits.hpp"
 #include "construct.hpp"

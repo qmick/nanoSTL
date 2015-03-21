@@ -1,5 +1,5 @@
-#ifndef __TYPE_TRAITS_HPP__
-#define __TYPE_TRAITS_HPP__
+#ifndef __NANO_TYPE_TRAITS_HPP__
+#define __NANO_TYPE_TRAITS_HPP__
 
 
 namespace nano
@@ -9,7 +9,7 @@ struct true_type{};
 struct false_type{};
 
 template < class T >
-class type_traits
+struct type_traits
 {
 	typedef true_type this_dummy_member_must_be_first;
 	typedef false_type has_trivial_default_constructor;
@@ -21,7 +21,7 @@ class type_traits
 };
 
 template<>
-class type_traits < char >
+struct type_traits < char >
 {
 	typedef true_type has_trivial_default_constructor;
 	typedef true_type has_trivial_copy_constructor;
@@ -32,7 +32,7 @@ class type_traits < char >
 };
 
 template<>
-class type_traits < signed char >
+struct type_traits < signed char >
 {
 	typedef true_type has_trivial_default_constructor;
 	typedef true_type has_trivial_copy_constructor;
@@ -43,7 +43,7 @@ class type_traits < signed char >
 };
 
 template<>
-class type_traits < unsigned char >
+struct type_traits < unsigned char >
 {
 	typedef true_type has_trivial_default_constructor;
 	typedef true_type has_trivial_copy_constructor;
@@ -54,7 +54,7 @@ class type_traits < unsigned char >
 };
 
 template<>
-class type_traits < short >
+struct type_traits < short >
 {
 	typedef true_type has_trivial_default_constructor;
 	typedef true_type has_trivial_copy_constructor;
@@ -65,7 +65,7 @@ class type_traits < short >
 };
 
 template<>
-class type_traits < unsigned char >
+struct type_traits < unsigned short >
 {
 	typedef true_type has_trivial_default_constructor;
 	typedef true_type has_trivial_copy_constructor;
@@ -76,7 +76,7 @@ class type_traits < unsigned char >
 };
 
 template<>
-class type_traits < int >
+struct type_traits < int >
 {
 	typedef true_type has_trivial_default_constructor;
 	typedef true_type has_trivial_copy_constructor;
@@ -87,7 +87,7 @@ class type_traits < int >
 };
 
 template<>
-class type_traits < unsigned int >
+struct type_traits < unsigned int >
 {
 	typedef true_type has_trivial_default_constructor;
 	typedef true_type has_trivial_copy_constructor;
@@ -98,7 +98,7 @@ class type_traits < unsigned int >
 };
 
 template<>
-class type_traits < long >
+struct type_traits < long >
 {
 	typedef true_type has_trivial_default_constructor;
 	typedef true_type has_trivial_copy_constructor;
@@ -109,7 +109,7 @@ class type_traits < long >
 };
 
 template<>
-class type_traits < unsigned long >
+struct type_traits < unsigned long >
 {
 	typedef true_type has_trivial_default_constructor;
 	typedef true_type has_trivial_copy_constructor;
@@ -120,7 +120,7 @@ class type_traits < unsigned long >
 };
 
 template<>
-class type_traits < float >
+struct type_traits < float >
 {
 	typedef true_type has_trivial_default_constructor;
 	typedef true_type has_trivial_copy_constructor;
@@ -131,7 +131,7 @@ class type_traits < float >
 };
 
 template<>
-class type_traits < double >
+struct type_traits < double >
 {
 	typedef true_type has_trivial_default_constructor;
 	typedef true_type has_trivial_copy_constructor;
@@ -142,7 +142,7 @@ class type_traits < double >
 };
 
 template<>
-class type_traits < long double >
+struct type_traits < long double >
 {
 	typedef true_type has_trivial_default_constructor;
 	typedef true_type has_trivial_copy_constructor;
@@ -153,7 +153,7 @@ class type_traits < long double >
 };
 
 template<class T>
-class type_traits < T* >
+struct type_traits < T* >
 {
 	typedef true_type has_trivial_default_constructor;
 	typedef true_type has_trivial_copy_constructor;

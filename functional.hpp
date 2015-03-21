@@ -172,9 +172,11 @@ struct bit_xor
 
 //Negators
 template< class Predicate >
-struct unary_negate : public unary_function < Predicate::argument_type, bool >
+struct unary_negate
 {
 public:
+	typedef typename Predicate::argument_type argument_type;
+	typedef bool result_type;
 	explicit unary_negate(Predicate const& pred)
 		: my_pred(pred){}
 
@@ -188,13 +190,12 @@ protected:
 };
 
 template< class Predicate >
-struct binary_negate :
-	public binary_function <
-	Predicate::first_argument_type,
-	Predicate::second_argument_type,
-	bool >
+struct binary_negate
 {
 public:
+	typedef typename Predicate::first_argument_type first_argument_type;
+	typedef typename Predicate::second_argument_type second_argument_type;
+	typedef bool result_type;
 	explicit binary_negate(Predicate const& pred)
 		: my_pred(pred){}
 	bool operator()(first_argument_type const& x,
@@ -204,7 +205,7 @@ public:
 	}
 
 protected:
-	my_pred;
+	Predicate my_pred;
 };
 
 template< class Predicate >
@@ -219,23 +220,6 @@ binary_negate<Predicate> not2(const Predicate& pred)
 	return binary_negate<Predicate>(pred);
 }
 
-//Deprecated in C++11
-template <typename ArgumentType, typename ResultType>
-struct unary_function
-{
-public:
-	typedef ArgumentType argument_type;
-	typedef ResultType result_type;
-};
-
-template< class Arg1, class Arg2, class Result > 
-struct binary_function
-{
-public:
-	typedef Arg1 first_argument_type;
-	typedef	Arg2 second_argument_type;
-	typedef	Result result_type;
-};
 
 }
 

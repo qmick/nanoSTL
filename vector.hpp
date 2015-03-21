@@ -14,19 +14,20 @@ class vector
 {
 public:
     //Member types
-    typedef T             value_type;
-    typedef Allocator     allocator_type;
-    typedef size_t        size_type;
-    typedef ptrdiff_t     difference_type;
-    typedef T&            reference;
-    typedef const T&      const_reference;
-    typedef T*            pointer;
-    typedef const T*      const_pointer;
-    typedef pointer       iterator;
+    typedef T value_type;
+    typedef Allocator allocator_type;
+    typedef size_t size_type;
+    typedef ptrdiff_t difference_type;
+    typedef T& reference;
+    typedef const T& const_reference;
+    typedef T* pointer;
+    typedef const T* const_pointer;
+    typedef pointer iterator;
     typedef const_pointer const_iterator;
-    typedef nano::reverse_iterator<iterator>       reverse_iterator;
+    typedef nano::reverse_iterator<iterator> reverse_iterator;
     typedef nano::reverse_iterator<const_iterator> const_reverse_iterator;
-	typedef vector<T, allocator<T> >               my_type;
+	typedef vector<T, allocator<T> > my_type;
+	typedef simple_allocator<T, Allocator> vector_allocator;
 
 	//Member functions
     vector()
@@ -62,7 +63,7 @@ public:
     ~vector()
     {
 		destroy(my_first, my_last);
-		Allocator::deallocate(my_first, capacity());
+		vector_allocator::deallocate(my_first, capacity());
     }
 
 	vector& operator=(const my_type& other)
@@ -78,14 +79,15 @@ public:
 
     void assign(size_type count, const_reference value)
     {
-		this->reserve(count);
+		//TODO
+		//this->reserve(count);
 		my_last = uninitialized_fill_n(my_first, count, value);
     }
 
     template < class InputIt >
     void assign(InputIt first, InputIt last)
     {
-		
+		//TODO
     }
 
 	allocator_type get_allocator() const
@@ -176,12 +178,12 @@ public:
     {
 		if (new_cap > this->capacity())
 		{
-			pointer temp_first = Allocator::allocate(new_cap);
+			pointer temp_first = vector_allocator::allocate(new_cap);
 			try
 			{
 				pointer temp_last = uninitialized_copy(my_first, my_last, temp_first);
 				destroy(begin(), end());
-				Allocator::deallocate(my_first, capacity());
+				vector_allocator::deallocate(my_first, capacity());
 				my_first = temp_first;
 				my_last  = temp_last;
 				
@@ -189,7 +191,7 @@ public:
 			catch (...)
 			{
 				//If copy operation fails, memory must be deallocated
-				Allocator::deallocate(temp_first, new_cap);
+				vector_allocator::deallocate(temp_first, new_cap);
 			}
 		}
     }
@@ -207,13 +209,10 @@ public:
 
     iterator insert(iterator pos, const T& value)
     {
-		//pos should be within range
-		assert(pos - my_first <= size() && pos >= my_first);
-
 		if (size() + 1 <= capacity())
 		{			
 			copy_backward(my_first, my_last, my_last + 1);
-			::new((void *) pos) T(value);
+			construct(pos, value);
 			return pos;
 		}
 		else
@@ -228,13 +227,13 @@ public:
 			catch (...)
 			{
 				//If copy operation fails, memory must be deallocated
-				Allocator::deallocate(temp_first, 2 * size());
+				vector_allocator::deallocate(temp_first, 2 * size());
 				return pos;
 			}
 
-			::new((void *) mid) T(value);
+			construct(pos, value);
 			destroy(begin(), end());
-			Allocator::deallocate(my_first, capacity());
+			vector_allocator::deallocate(my_first, capacity());
 			my_first = temp_first;
 			my_last = temp_last;
 			return mid;
@@ -244,7 +243,8 @@ public:
 
     iterator insert(iterator pos, size_type count, const T& value)
     {
-		assert(pos - my_first <= size() && pos > my_first);
+		if (pos - my_first > size() || pos < my_first)
+			throw std::out_of_range;
 
 		if (count == 0)
 			return pos;
@@ -257,7 +257,7 @@ public:
 		else
 		{
 			size_t expected_size = max(capacity() + count, 2 * capacity());
-			pointer temp_first = Allocator::allocate(expected_size);
+			pointer temp_first = alloc.allocate(expected_size);
 			pointer mid, temp_last;
 			try
 			{
@@ -268,12 +268,12 @@ public:
 			catch (...)
 			{
 				//If copy operation fails, memory must be deallocated
-				Allocator::deallocate(temp_first, expected_size);
+				vector_allocator::deallocate(temp_first, expected_size);
 				return pos;
 			}
 
 			destroy(begin(), end());
-			Allocator::deallocate(my_first, capacity());
+			vector_allocator::deallocate(my_first, capacity());
 			my_first = temp_first;
 			my_last = temp_last;
 			return mid;
@@ -283,7 +283,8 @@ public:
     template <class InputIt>
     iterator insert(iterator pos, InputIt first, InputIt last)
     {		
-		assert(pos - my_first <= size() && pos > my_first);
+		if (pos - my_first > size() || pos < my_first)
+			throw std::out_of_range;
 
 		size_t count = distance(first, last);
 
@@ -310,12 +311,12 @@ public:
 			catch (...)
 			{
 				//If copy operation fails, memory must be deallocated
-				Allocator::deallocate(temp_first, expected_size);
+				vector_allocator::deallocate(temp_first, expected_size);
 				return pos;
 			}
 			
 			destroy(begin(), end());
-			Allocator::deallocate(my_first, capacity());
+			vector_allocator::deallocate(my_first, capacity());
 
 			my_first = temp_first;
 			my_last = temp_last;
@@ -327,7 +328,7 @@ public:
     {
 		if (pos >= my_last && pos < my_last)
 		{
-			pos->~T();
+			destroy(pos);
 			copy(pos + 1, my_last, pos);
 			--my_last;
 		}
@@ -364,6 +365,11 @@ public:
 			reserve(count);
 			uninitialized_fill_n(temp_last, count - (temp_last - my_last), value);
 		}
+		else
+		{
+			while (count > size())
+				pop_back();
+		}
     }
 
     void swap(my_type& other)
@@ -378,11 +384,12 @@ public:
 		pointer my_last; //Last of array
 		pointer my_end; //End of space
 
-		template< class InputIt >
-		void vector_init(InputIt count, InputIt value, true_type)
+		template< class T >
+		void vector_init(size_t count, T value, true_type)
 		{
 			this->reserve(count);
-			my_last = uninitialized_fill_n(my_first, count, value);
+			uninitialized_fill_n(my_first, count, value);
+			my_last = my_first + count;
 		}
 
 		template< class InputIt >
@@ -401,10 +408,10 @@ public:
 		template< class InputIt >
 		void fill_from_range(InputIt first, InputIt last, forward_iterator_tag)
 		{
-			size_type count = static_cast<size_type>(distance(first, last));
-			my_first        = Allocator::allocate(count);
-			my_end          = my_first + count;
-			my_last         = uninitialized_copy(first, last, begin());
+			size_t count = distance(first, last);
+			my_first     = vector_allocator::allocate(count);
+			my_end       = my_first + count;
+			my_last      = uninitialized_copy(first, last, begin());
 		}
 
 };

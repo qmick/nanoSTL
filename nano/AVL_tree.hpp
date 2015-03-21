@@ -1,5 +1,5 @@
-#ifndef __AVL_TREE_HPP__
-#define __AVL_TREE_HPP__
+#ifndef __NANO_AVL_TREE_HPP__
+#define __NANO_AVL_TREE_HPP__
 
 class AVL_tree
 {
