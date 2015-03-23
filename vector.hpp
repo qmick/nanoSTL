@@ -30,65 +30,52 @@ public:
 	typedef simple_allocator<T, Allocator> vector_allocator;
 
 	//Member functions
-    vector()
-		: my_first(0), my_last(0), my_end(0) {}
+    vector() : my_first(0), my_last(0), my_end(0) {}
 
-	explicit vector(size_type count, 
-		            const T& value = T(),
-		            const Allocator& alloc = Allocator())	//May be removed	
+	explicit vector(size_type count, const T& value = T())	//May be removed	
 					: my_first(0), my_last(0), my_end(0)
 	{
-		this->vector_init(count, value, true_type()); //Call 
+		assign(count, value);
 	}
 
     template< class InputIt >
     vector(InputIt first, InputIt last)
 		: my_first(0), my_last(0), my_end(0)
     {
-		this->vector_init(first, last, is_integral(InputIt()));
+		assign(first, last);
     }
 
 	vector(const my_type& other)
 		: my_first(0), my_last(0), my_end(0)
 	{
-		size_type count = other.size();
-		if (count > 0)
-		{
-			this->reserve(count);
-			memcpy(my_first, other.my_first, count * sizeof(T));
-			my_last = my_first + count;
-		}
+		*this = other;
 	}
 
     ~vector()
     {
 		destroy(my_first, my_last);
-		vector_allocator::deallocate(my_first, capacity());
+		vector_allocator::deallocate(my_first);
     }
 
 	vector& operator=(const my_type& other)
 	{
-		size_type count = other.size();
-		if (count > 0)
-		{
-			this->reserve(count);
-			memcpy(my_first, other.my_first, count * sizeof(T));
-			my_last = my_first + count;
-		}
+		assign(other.begin(), other.end());
+		return *this;
 	}
+
 
     void assign(size_type count, const_reference value)
     {
-		//TODO
-		//this->reserve(count);
-		my_last = uninitialized_fill_n(my_first, count, value);
+		fill_assign(count, value);
     }
 
     template < class InputIt >
     void assign(InputIt first, InputIt last)
     {
-		//TODO
+		assign_dispatch(first, last, is_integral(first));
     }
+
+
 
 	allocator_type get_allocator() const
 	{
@@ -98,18 +85,18 @@ public:
     //Element access
     reference at(size_type pos)
     {
-		if (pos < size() && pos >= my_first)
+		if (pos < size())
 			return (*this)[pos];
 		else
-			throw std::out_of_range;
+			throw std::out_of_range("pos out of bound");
     }
 
     const_reference at(size_type pos) const
     {
-		if (pos < size() && pos >= my_first)
+		if (pos < size())
 			return (*this)[pos];
 		else
-			throw std::out_of_range;
+			throw std::out_of_range("pos out of bound");
     }
 
     reference operator[](size_type pos)
@@ -176,23 +163,27 @@ public:
 
     void reserve(size_type new_cap)
     {
-		if (new_cap > this->capacity())
+		if (new_cap > capacity())
 		{
 			pointer temp_first = vector_allocator::allocate(new_cap);
+			pointer temp_end = temp_first + new_cap;
+			pointer temp_last;
 			try
 			{
-				pointer temp_last = uninitialized_copy(my_first, my_last, temp_first);
-				destroy(begin(), end());
-				vector_allocator::deallocate(my_first, capacity());
-				my_first = temp_first;
-				my_last  = temp_last;
-				
+				temp_last = uninitialized_copy(my_first, my_last, temp_first);			
 			}
 			catch (...)
 			{
 				//If copy operation fails, memory must be deallocated
-				vector_allocator::deallocate(temp_first, new_cap);
+				vector_allocator::deallocate(temp_first);
+				throw;
+				return;
 			}
+			destroy(begin(), end());
+			vector_allocator::deallocate(my_first);
+			my_first = temp_first;
+			my_last = temp_last;
+			my_end = temp_end;
 		}
     }
 
@@ -227,13 +218,14 @@ public:
 			catch (...)
 			{
 				//If copy operation fails, memory must be deallocated
-				vector_allocator::deallocate(temp_first, 2 * size());
+				vector_allocator::deallocate(temp_first);
+				throw;
 				return pos;
 			}
 
 			construct(pos, value);
 			destroy(begin(), end());
-			vector_allocator::deallocate(my_first, capacity());
+			vector_allocator::deallocate(my_first);
 			my_first = temp_first;
 			my_last = temp_last;
 			return mid;
@@ -244,7 +236,7 @@ public:
     iterator insert(iterator pos, size_type count, const T& value)
     {
 		if (pos - my_first > size() || pos < my_first)
-			throw std::out_of_range;
+			throw std::out_of_range("pos out of bound");
 
 		if (count == 0)
 			return pos;
@@ -268,12 +260,13 @@ public:
 			catch (...)
 			{
 				//If copy operation fails, memory must be deallocated
-				vector_allocator::deallocate(temp_first, expected_size);
+				vector_allocator::deallocate(temp_first); 
+				throw;
 				return pos;
 			}
 
 			destroy(begin(), end());
-			vector_allocator::deallocate(my_first, capacity());
+			vector_allocator::deallocate(my_first);
 			my_first = temp_first;
 			my_last = temp_last;
 			return mid;
@@ -284,7 +277,7 @@ public:
     iterator insert(iterator pos, InputIt first, InputIt last)
     {		
 		if (pos - my_first > size() || pos < my_first)
-			throw std::out_of_range;
+			throw std::out_of_range("pos out of bound");
 
 		size_t count = distance(first, last);
 
@@ -311,12 +304,13 @@ public:
 			catch (...)
 			{
 				//If copy operation fails, memory must be deallocated
-				vector_allocator::deallocate(temp_first, expected_size);
+				vector_allocator::deallocate(temp_first);
+				throw;
 				return pos;
 			}
 			
 			destroy(begin(), end());
-			vector_allocator::deallocate(my_first, capacity());
+			vector_allocator::deallocate(my_first);
 
 			my_first = temp_first;
 			my_last = temp_last;
@@ -359,16 +353,16 @@ public:
 
 	void resize(size_type count, T value = T())
     {
+		reserve(count);
 		if (count > size())
 		{
-			temp_last = my_last;
-			reserve(count);
-			uninitialized_fill_n(temp_last, count - (temp_last - my_last), value);
+			temp_last = my_last;		
+			uninitialized_fill_n(temp_last, my_first + count, value);
 		}
 		else
 		{
-			while (count > size())
-				pop_back();
+			destroy(my_first + count + 1, my_last);
+			my_last = my_first + count;
 		}
     }
 
@@ -384,34 +378,84 @@ public:
 		pointer my_last; //Last of array
 		pointer my_end; //End of space
 
-		template< class T >
-		void vector_init(size_t count, T value, true_type)
+		void fill_assign(size_type count, const_reference value)
 		{
-			this->reserve(count);
-			uninitialized_fill_n(my_first, count, value);
-			my_last = my_first + count;
+			if (count > capacity())
+			{
+				size_t prev_cap = capacity();
+
+				int new_cap = max(2 * prev_cap, count);
+				pointer temp_first = vector_allocator::allocate(new_cap);
+				pointer temp_last;
+				try
+				{
+					uninitialized_fill_n(temp_first, count, value);				
+				}
+				catch (...)
+				{
+					vector_allocator::deallocate(temp_first);
+					throw;
+				}
+				temp_last = temp_first + count;
+				destroy(my_first, my_last);
+				vector_allocator::deallocate(my_first);
+				my_first = temp_first;
+				my_last = my_first + count;
+				my_end = my_first + new_cap;
+			}
+			else
+			{
+				destroy(my_first, my_last);
+				uninitialized_fill_n(my_first, count, value);
+				my_last = my_first + count;
+			}
 		}
 
 		template< class InputIt >
-		void vector_init(InputIt first, InputIt last, false_type)
-		{
-			this->fill_from_range(first, last, iterator_category(InputIt()));
-		}
-		
-		template< class InputIt >
-		void fill_from_range(InputIt first, InputIt last, input_iterator_tag)
-		{
-			for (; first != last; ++first)
-				this->push_back(first);
-		}
-
-		template< class InputIt >
-		void fill_from_range(InputIt first, InputIt last, forward_iterator_tag)
+		void copy_assign(InputIt first, InputIt last)
 		{
 			size_t count = distance(first, last);
-			my_first     = vector_allocator::allocate(count);
-			my_end       = my_first + count;
-			my_last      = uninitialized_copy(first, last, begin());
+
+			if (count > capacity())
+			{
+				size_t prev_cap = capacity();
+
+				int new_cap = max(2 * prev_cap, count);
+				pointer temp_first = vector_allocator::allocate(new_cap);
+				pointer temp_last;
+				try
+				{
+					temp_last = uninitialized_copy(first, last, temp_first);
+				}
+				catch (...)
+				{
+					vector_allocator::deallocate(temp_first);
+					throw;
+				}
+				destroy(my_first, my_last);
+				vector_allocator::deallocate(my_first);
+				my_first = temp_first;
+				my_last = my_first + count;
+				my_end = my_first + new_cap;
+			}
+			else
+			{
+				destroy(my_first, my_last);
+				my_last = uninitialized_copy(first, last, my_first);
+			}
+		}
+
+
+		template < class InputIt >
+		void assign_dispatch(InputIt first, InputIt last, true_type)
+		{
+			fill_assign(first, last);
+		}
+
+		template < class InputIt >
+		void assign_dispatch(InputIt first, InputIt last, false_type)
+		{
+			copy_assign(first, last);
 		}
 
 };

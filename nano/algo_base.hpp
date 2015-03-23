@@ -101,61 +101,61 @@ inline ForwardIt1 __find_end(ForwardIt1 first, ForwardIt1 last,
 
 template< class RanIt, class OutputIt >
 //Copy content pointed by random access iterator
-inline OutputIt __copy(RanIt first, RanIt last, OutputIt d_last,
+inline OutputIt __copy(RanIt first, RanIt last, OutputIt d_first,
 	random_access_iterator_tag)
 {
-	__copy_r(first, last, d_last);
+	return __copy_r(first, last, d_first);
 }
 
 template< class InputIt, class OutputIt >
 //Copy content pointed by input iterator
-inline OutputIt __copy(const InputIt first, const InputIt last, OutputIt d_last,
+inline OutputIt __copy(InputIt first, InputIt last, OutputIt d_first,
 	input_iterator_tag)
 {
-	for (; first != last; ++first, ++d_last)
-		*d_last = *first;
+	for (; first != last; ++first, ++d_first)
+		*d_first = *first;
 }
 
 template< class T >
 //Copy content pointed by const pointer(continuous data)
-inline T* __copy_r(const T *first, const T *last, T *d_last)
+inline T* __copy_r(const T *first, const T *last, T *d_first)
 {
-	typedef typename type_traits<*first>::has_trivial_assignment_operator htao;
-	return __copy_r_trivial(first, last, d_last, htao());
+	typedef typename type_traits<T>::has_trivial_assignment_operator htao;
+	return __copy_r_trivial(first, last, d_first, htao());
 }
 
 template< class T >
 //Copy content pointed by pointer(continuous data)
-inline T* __copy_r(T *first, T *last, T *d_last)
+inline T* __copy_r(T *first, T *last, T *d_first)
 {
 	typedef typename type_traits<*first>::has_trivial_assignment_operator htao;
-	return __copy_r_trivial(first, last, d_last, htao());
+	return __copy_r_trivial(first, last, d_first, htao());
 }
 
 template< class RanIt, class OutputIt, class Distance >
 //Copy content pointed by random access iterator but not pointer
-inline OutputIt __copy_r(RanIt first, RanIt last, OutputIt d_last)
+inline OutputIt __copy_r(RanIt first, RanIt last, OutputIt d_first)
 {
-	for (Distance i = last - first; i > 0; --i, ++first, ++d_last)
-		*d_last = *first;
-	return d_last;
+	for (Distance i = last - first; i > 0; --i, ++first, ++d_first)
+		*d_first = *first;
+	return d_first;
 }
 
 template< class T >
 //Copy content pointed by pointer(continuous data) and has trivial assignment operator
-inline T* __copy_r_trivial(const T *first, const T *last, T *d_last, true_type)
+inline T* __copy_r_trivial(const T *first, const T *last, T *d_first, true_type)
 {
-	memmove(d_last, first, sizeof(T1) * (last - first));
+	memmove(d_first, first, sizeof(T) * (last - first));
 	return d_first + (last - first);
 }
 
 template< class T >
 //Copy content pointed by pointer(continuous data) but don't has trivial assignment operator
-inline T* __copy_r_trivial(const T *first, const T *last, T *d_last, false_type)
+inline T* __copy_r_trivial(const T *first, const T *last, T *d_first, false_type)
 {
-	for (int i = last - first; i > 0; --i, ++first, ++d_last)
-		*d_last = *first;
-	return d_last;
+	for (int i = last - first; i > 0; --i, ++first, ++d_first)
+		*d_first = *first;
+	return d_first;
 }
 
 template< class RanIt >

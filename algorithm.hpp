@@ -321,7 +321,9 @@ template< class InputIt, class OutputIt >
 OutputIt copy(InputIt first, InputIt last, OutputIt d_first)
 {
 	if (distance(first, last) > 0)
-		__copy(first, last, iterator_category(first));
+		return __copy(first, last, d_first, iterator_category(first));
+	else
+		return d_first;
 }
 
 template< class BidIt1, class BidIt2 >
@@ -856,13 +858,13 @@ void sort_heap(RanIt first, RanIt last, Compare comp)
 template< class T >
 const T& max(const T& a, const T& b)
 {
-	//TODO
+	return a > b ? a : b;
 }
 
 template< class T, class Compare >
 const T& max(const T& a, const T& b, Compare comp)
 {
-	//TODO
+	return comp(a, b) ? a : b;
 }
 
 template< class ForwardIt >

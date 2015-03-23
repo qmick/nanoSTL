@@ -13,7 +13,7 @@ struct iterator_traits
 {
 	typedef typename Iterator::iterator_category iterator_category;
 	typedef typename Iterator::value_type value_type;
-	typedef typename Iterator::different_type different_type;
+	typedef typename Iterator::difference_type difference_type;
 	typedef typename Iterator::pointer pointer;
 	typedef typename Iterator::reference reference;
 };
@@ -169,10 +169,10 @@ public:
 };
 
 template< class It >
-inline typename iterator_traits<It>::category
+inline typename iterator_traits<It>::iterator_category
 iterator_category(const It&)
 {
-	typedef typename iterator_traits<It>::category category;
+	typedef typename iterator_traits<It>::iterator_category category;
 	return category();
 }
 

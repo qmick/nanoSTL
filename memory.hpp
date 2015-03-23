@@ -37,7 +37,7 @@ public:
 			throw std::bad_alloc();
 	}
 
-	static void deallocate(pointer ptr, size_type)
+	static void deallocate(pointer ptr, size_type = 0)
 	{
 		free(ptr);
 	}
