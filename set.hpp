@@ -7,7 +7,6 @@
 
 #ifdef USE_AVL_TREE
 #include "nano/AVL_tree.hpp"
-typedef AVL_tree tree;
 #else
 #include "nano/rb_tree.hpp"
 #endif
@@ -19,6 +18,11 @@ template < class Key, class Compare, class Allocator = nano::allocator<Key> >
 class set
 {
 public:
+#ifdef USE_AVL_TREE
+	typedef AVL_tree<Key, Compare, Allocator> search_tree;
+#else
+	typedef rb_tree<Key, Compare, Allocator> search_tree;
+#endif
 	typedef Key key_type;
 	typedef Key value_type;
 	typedef size_t size_type;
@@ -34,6 +38,7 @@ public:
 	typedef nano::iterator<bidirectional_iterator_tag, Key, const Key*, const Key&> const_iterator;
 	typedef nano::reverse_iterator<iterator> reverse_iterator;
 	typedef nano::reverse_iterator<const_iterator> const_reverse_iterator;	
+	typedef set<Key, Compare, Allocator> my_type;
 
 	set()
 	{
@@ -419,6 +424,9 @@ public:
 	{
 		//TODO
 	}
+
+private:
+	search_tree tree;
 };
 
 }
