@@ -133,6 +133,7 @@ public:
 	typedef size_t size_type;
 	typedef ptrdiff_t difference_type;
 	typedef rb_tree_iterator<value_type, reference, pointer> iterator;
+	typedef rb_tree<Key, Value, Compare, Allocator> my_type;
 	
 protected:
 	node_ptr get_node() { return tree_allocator::allocate(); }
@@ -187,7 +188,77 @@ protected:
 		return x;
 	}
 
+	node_ptr& root() const
+	{
+		return (node_ptr&) header->parent;
+	}
 
+	node_ptr& leftmost() const
+	{
+		return (node_ptr&) header->left;
+	}
+
+	node_ptr& rightmost() const
+	{
+		return (node_ptr&) header->right;
+	}
+
+private:
+	iterator insert(node_ptr x, node_ptr y, const value_type& v);
+	node_ptr copy(node_ptr x, node_ptr p);
+	void erase(node_ptr x);
+	void init()
+	{
+		header = get_node();
+		header->color = color_red;
+		root() = 0;
+		leftmost() = header;
+		rightmost() = header;
+	}
+
+public:
+	rb_tree(const Compare& comp = Compare())
+		: node_count(0), key_compare(comp) 
+	{
+		init();
+	}
+
+	~rb_tree()
+	{
+		clear();
+		put_node(header);
+	}
+
+	my_type& operator=(const my_type& x);
+
+public:
+	Compare key_comp() const { return key_compare; }
+	iterator begin(){ return leftmost(); }
+	iterator end(){ return header; }
+	iterator empty() const { return node_count == 0; }
+	size_type size() const { return node_count; }
+	size_type max_size() const { return size_type(-1); }
+
+public:
+	pair<iterator, bool> insert_unique(const value_type& v)
+	{
+		node_ptr y = header;
+		node_ptr x = root();
+		bool comp = true;
+		
+	}
+	iterator insert_equal(const value_type& v)
+	{
+		node_ptr y = header;
+		node_ptr x = root();
+		while (x != 0)
+		{
+			y = x;
+			x = key_compare(v, x) ? x->left : x->right;
+		}
+		return insert(x, y, v);
+	}
+	void clear();
 };
 
 }
