@@ -6,7 +6,7 @@ namespace nano {
 const bool color_red = false;
 const bool color_black = true;
 
-template< class T >
+template< class Value >
 struct rb_tree_node
 {
 	typedef rb_tree_node<T>* node_ptr;
@@ -14,7 +14,7 @@ struct rb_tree_node
 	node_ptr parent;
 	node_ptr left;
 	node_ptr right;
-	T value;
+	Value value;
 };
 
 template< class Value, class Ref, class Ptr >
@@ -117,14 +117,13 @@ struct rb_tree_iterator
 	}
 };
 
-template< class Key, class Value, class Compare, class Allocator = allocator<Key> >
+template< class Value, class Compare, class Allocator = allocator<Value> >
 class rb_tree
 {
 public:
-	typedef rb_tree_node<Key> tree_node;
+	typedef rb_tree_node<Value> tree_node;
 	typedef tree_node* node_ptr;
 	typedef simple_allocator<tree_node, Allocator> tree_allocator;
-	typedef Key key_type;
 	typedef Value value_type;
 	typedef Value* pointer;
 	typedef const Value* const_pointer;
@@ -133,7 +132,7 @@ public:
 	typedef size_t size_type;
 	typedef ptrdiff_t difference_type;
 	typedef rb_tree_iterator<value_type, reference, pointer> iterator;
-	typedef rb_tree<Key, Value, Compare, Allocator> my_type;
+	typedef rb_tree<Value, Compare, Allocator> my_type;
 	
 protected:
 	node_ptr get_node() { return tree_allocator::allocate(); }
@@ -170,7 +169,7 @@ protected:
 protected:
 	size_type node_count;
 	node_ptr header;
-	Compare key_compare;
+	Compare compare;
 
 	node_ptr& root() const { return (node_ptr&) header->parent; }
 
@@ -204,9 +203,6 @@ protected:
 	}
 
 private:
-	iterator insert(node_ptr x, node_ptr y, const value_type& v);
-	node_ptr copy(node_ptr x, node_ptr p);
-	void erase(node_ptr x);
 	void init()
 	{
 		header = get_node();
@@ -216,9 +212,141 @@ private:
 		rightmost() = header;
 	}
 
+	iterator insert(node_ptr x, node_ptr y, const value_type& v)
+	{
+		node_ptr z;
+		if (y == header || x != 0 || compare(v, y))
+		{
+			z = create_node(v);
+			y->left = z;
+			if (y == header)
+			{
+				root() = z;
+				rightmost() = z;
+			}
+			else if (y == leftmost())
+				leftmost() = z;
+		}
+		else
+		{
+			z = create_node(v);
+			y->right = z;
+			if (y == rightmost())
+				rightmost() = z;
+		}
+
+		z->parent = z;
+		z->left = 0;
+		z->right = 0;
+
+		rebalance(z);
+		++node_count;
+		return iterator(z);
+	}
+
+	node_ptr copy(node_ptr x, node_ptr p)
+	{
+
+	}
+
+	void erase(node_ptr x)
+	{
+
+	}
+	
+	void rebalance(node_ptr x)
+	{
+		x->color = color_red;
+		while (x != root() && x->parent->color == color_red)
+		{
+			if (x->parent == x->parent->parent->left)
+			{
+				node_ptr y = x->parent->parent->right;
+				if (y && y->color == color_red)
+				{
+					x->parent->color = color_black;
+					y->color = color_black;
+					x->parent->parent->color = color_red;
+					x = x->parent->parent;
+				}
+				else
+				{
+					if (x == x->parent->right)
+					{
+						x = x->parent;
+						rotate_left(x);
+					}
+					x->parent->color = color_black;
+					x->parent->parent->color = color_red;
+					rotate_right(x->parent->parent);
+				}
+			}
+			else
+			{
+				node_ptr y = x->parent->parent->left;
+				if (y && y->color == color_red)
+				{
+					x->parent->color = color_black;
+					y->color = color_black;
+					x->parent->parent->color = color_red;
+					x = x->parent->parent;
+				}
+				else
+				{
+					if (x == x->parent->left)
+					{
+						x = x->parent;
+						rotate_right(x);
+					}
+					x->parent->color = color_black;
+					x->parent->parent->color = color_red;
+					rotate_left(x->parent->parent);
+				}
+			}
+		}
+
+		root()->color = color_black;
+	}
+
+	void rotate_left(node_ptr x)
+	{
+		node_ptr y = x->right;
+		x->right = y->left;
+		if (y > left != 0)
+			y->left->parent = x;
+		y->parent = x->parent;
+
+		if (x == root())
+			root() = y;
+		else if (x == x->parent->left)
+			x->parent->left = y;
+		else
+			x->parent->right = y;
+		y->left = x;
+		x->parent = y;
+	}
+
+	void rotate_right(node_ptr x)
+	{
+		node_ptr y = x->left;
+		x->left = y->right;
+		if (y->right != 0)
+			y->right->parent = x;
+		y->parent = x->parent;
+
+		if (x == root())
+			root() = y;
+		else if (x == x->parent->right)
+			x->parent->right = y;
+		else
+			x->parent->left = y;
+		y->right = x;
+		x->parent = y;
+	}
+
 public:
 	rb_tree(const Compare& comp = Compare())
-		: node_count(0), key_compare(comp) 
+		: node_count(0), compare(comp) 
 	{
 		init();
 	}
@@ -232,7 +360,7 @@ public:
 	my_type& operator=(const my_type& x);
 
 public:
-	Compare key_comp() const { return key_compare; }
+	Compare value_comp() const { return compare; }
 	iterator begin(){ return leftmost(); }
 	iterator end(){ return header; }
 	iterator empty() const { return node_count == 0; }
@@ -245,7 +373,25 @@ public:
 		node_ptr y = header;
 		node_ptr x = root();
 		bool comp = true;
-		
+
+		while (x != 0)
+		{
+			y = x;
+			comp = compare(v, x);
+			x = comp ? x->left : x->right;
+		}
+
+		iterator j = iterator(y);
+		if (comp)
+		{
+			if (j == begin())
+				return pair<iterator, bool>(insert(x, y, v), true);
+			else
+				--j;
+			if (compare(j.node, v))
+				return pair<iterator, bool>(insert(x, y, v), true);
+			return pair<iterator, bool>(j, false);
+		}
 	}
 	iterator insert_equal(const value_type& v)
 	{
@@ -254,7 +400,7 @@ public:
 		while (x != 0)
 		{
 			y = x;
-			x = key_compare(v, x) ? x->left : x->right;
+			x = compare(v, x) ? x->left : x->right;
 		}
 		return insert(x, y, v);
 	}
