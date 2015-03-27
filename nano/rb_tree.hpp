@@ -1,6 +1,8 @@
 #ifndef __NANO_RB_TREE_HPP__
 #define __NANO_RB_TREE_HPP__
 
+#include "../algorithm.hpp"
+
 namespace nano {
 
 const bool color_red = false;
@@ -117,22 +119,25 @@ struct rb_tree_iterator
 	}
 };
 
-template< class Value, class Compare, class Allocator = allocator<Value> >
+template< class Key, class Compare, class Allocator >
 class rb_tree
 {
 public:
-	typedef rb_tree_node<Value> tree_node;
+	typedef rb_tree_node<Key> tree_node;
 	typedef tree_node* node_ptr;
 	typedef simple_allocator<tree_node, Allocator> tree_allocator;
-	typedef Value value_type;
-	typedef Value* pointer;
-	typedef const Value* const_pointer;
-	typedef Value& reference;
-	typedef const Value& const_reference;
+	typedef Key value_type;
+	typedef Key* pointer;
+	typedef const Key* const_pointer;
+	typedef Key& reference;
+	typedef const Key& const_reference;
 	typedef size_t size_type;
 	typedef ptrdiff_t difference_type;
 	typedef rb_tree_iterator<value_type, reference, pointer> iterator;
-	typedef rb_tree<Value, Compare, Allocator> my_type;
+	typedef rb_tree_iterator<value_type, const_reference, const_pointer> const_iterator;
+	typedef nano::reverse_iterator<iterator> reverse_iterator;
+	typedef nano::reverse_iterator<const_iterator> const_reverse_iterator;
+	typedef rb_tree<Key, Compare, Allocator> my_type;
 	
 protected:
 	node_ptr get_node() { return tree_allocator::allocate(); }
@@ -212,6 +217,35 @@ private:
 		rightmost() = header;
 	}
 
+	node_ptr copy(node_ptr x, node_ptr p)
+	{
+		node_ptr top = clone_node(x);
+		top->parent = p;
+
+		try
+		{
+			if (x->right)
+				top->right = copy(x->right, top);
+			p = top;
+			x = x->left;
+
+			while (x != 0)
+			{
+				node_ptr y = clone_node(x);
+				p->left = y;
+				y->parent = p;
+				if (x->right)
+					y->right = copy(x->right, y);
+				p = y;
+				x = x->left;
+			}
+		}
+		catch (...)
+		{
+			simple_erase_all(top);
+		}
+	}
+
 	iterator insert(node_ptr x, node_ptr y, const value_type& v)
 	{
 		node_ptr z;
@@ -239,22 +273,110 @@ private:
 		z->left = 0;
 		z->right = 0;
 
-		rebalance(z);
+		insert_rebalance(z);
 		++node_count;
 		return iterator(z);
 	}
 
-	node_ptr copy(node_ptr x, node_ptr p)
+	//simply remove node x and all its children without rebalancing
+	void simple_erase_all(node_ptr x)
 	{
-
+		while (x != 0)
+		{
+			result = simple_erase_all(x->right);
+			node_ptr y = x->left;
+			destroy_node(x);
+			x = y;
+		}
 	}
 
-	void erase(node_ptr x)
+	//remove a node x and rebalance if neccessary
+	void delete_node(node_ptr x)
 	{
+		node_ptr y = z;
+		bool y_color = y->color;
+		node_ptr x;
 
+		if (z->left == header)
+		{
+			x = z.right;
+			transplant(z, z->right);
+		}
+		else if (z->right == header)
+		{
+			x = z->left;
+			transplant(z, z->left);
+		}
+		else
+		{
+			y = minimun(z.right);
+			y_color = y->color;
+			x = y->right;
+			if (y->parent == z)
+				x->parent = y;
+			else
+			{
+				transplant(y, y->right);
+				y->right = z->right;
+				y->right->parent = y;
+			}
+			transplant(z, y);
+			y->left = z->left;
+			y->left->parent = y;
+			y->color = z->color;
+		}
+		if (y_color == color_black)
+			delete_rebalance(x);
+		--node_count;
 	}
 	
-	void rebalance(node_ptr x)
+	void rotate_left(node_ptr x)
+	{
+		node_ptr y = x->right;
+		x->right = y->left;
+		if (y > left != 0)
+			y->left->parent = x;
+		y->parent = x->parent;
+
+		if (x == root())
+			root() = y;
+		else if (x == x->parent->left)
+			x->parent->left = y;
+		else
+			x->parent->right = y;
+		y->left = x;
+		x->parent = y;
+	}
+
+	void rotate_right(node_ptr x)
+	{
+		node_ptr y = x->left;
+		x->left = y->right;
+		if (y->right != 0)
+			y->right->parent = x;
+		y->parent = x->parent;
+
+		if (x == root())
+			root() = y;
+		else if (x == x->parent->right)
+			x->parent->right = y;
+		else
+			x->parent->left = y;
+		y->right = x;
+		x->parent = y;
+	}
+
+	void transplant(node_ptr u, node_ptr v)
+	{
+		if (u->parent == 0)
+			root() = v;
+		else if (u == u->parent->left)
+			u->parent->left = v;
+		else u->parent->right = v;
+		v->parent = u->parent;
+	}
+	 
+	void insert_rebalance(node_ptr x)
 	{
 		x->color = color_red;
 		while (x != root() && x->parent->color == color_red)
@@ -308,40 +430,77 @@ private:
 		root()->color = color_black;
 	}
 
-	void rotate_left(node_ptr x)
+	void delete_rebalance(node_ptr x)
 	{
-		node_ptr y = x->right;
-		x->right = y->left;
-		if (y > left != 0)
-			y->left->parent = x;
-		y->parent = x->parent;
-
-		if (x == root())
-			root() = y;
-		else if (x == x->parent->left)
-			x->parent->left = y;
-		else
-			x->parent->right = y;
-		y->left = x;
-		x->parent = y;
-	}
-
-	void rotate_right(node_ptr x)
-	{
-		node_ptr y = x->left;
-		x->left = y->right;
-		if (y->right != 0)
-			y->right->parent = x;
-		y->parent = x->parent;
-
-		if (x == root())
-			root() = y;
-		else if (x == x->parent->right)
-			x->parent->right = y;
-		else
-			x->parent->left = y;
-		y->right = x;
-		x->parent = y;
+		while (x != root() && x->color == color_black)
+		{
+			if (x == x->parent->left)
+			{
+				node_ptr w = x->parent->right;
+				if (w->color == color_red)
+				{
+					w->color = color_black;
+					x->parent->color = color_red;
+					rotate_left(x->parent);
+					w = x->right;
+				}
+				if (w->left->color == color_black && w->right->color == color_black)
+				{
+					w->color = color_red;
+					x = x->parent;
+				}
+				else
+				{
+					if (w->right->color == color_black)
+					{
+						w->left->color = color_black;
+						w->color = color_red;
+						rotate_right(w);
+						w = x->parent->right;
+					}
+					w->color = x->parent->color;
+					x->parent->color = color_black;
+					w->right->color = color_black;
+					rotate_left(x->parent);
+					x = root();
+				}
+			}
+			else
+			{
+				if (x == x->parent->right)
+				{
+					node_ptr w = x->parent->left;
+					if (w->color == color_red)
+					{
+						w->color = color_black;
+						x->parent->color = color_red;
+						rotate_right(x->parent);
+						w = x->left;
+					}
+					if (w->right->color == color_black && w->left->color == color_black)
+					{
+						w->color = color_red;
+						x = x->parent;
+					}
+					else
+					{
+						if (w->left->color == color_black)
+						{
+							w->right->color = color_black;
+							w->color = color_red;
+							rotate_left(w);
+							w = x->parent->left;
+						}
+						w->color = x->parent->color;
+						x->parent->color = color_black;
+						w->left->color = color_black;
+						rotate_right(x->parent);
+						x = root();
+					}
+				}
+			}
+		}
+		x->color = color_black;
 	}
 
 public:
@@ -357,15 +516,42 @@ public:
 		put_node(header);
 	}
 
-	my_type& operator=(const my_type& x);
+	my_type& operator=(const my_type& x)
+	{
+		if (this != &x)
+		{
+			clear();
+			compare = x.compare;
+			if (x.root() != 0)
+			{
+				root() = copy(x.root(), x.header);
+				leftmost() = minimun(root());
+				rightmost() = maximum(root());
+				node_count = x.node_count;
+			}
+		}
+		return *this;
+	}
 
 public:
 	Compare value_comp() const { return compare; }
 	iterator begin(){ return leftmost(); }
+	const_iterator begin() const { return leftmost(); }
 	iterator end(){ return header; }
+	const_iterator end() const { return header; }
+	reverse_iterator rbegin() { return reverse_iterator(begin()); }
+	const_reverse_iterator rbegin() const { return const_reverse_iterator(begin()); }
+	reverse_iterator rend() { return reverse_iterator(end()); }
+	const_reverse_iterator rend() const { return const_reverse_iterator(end()); }
 	iterator empty() const { return node_count == 0; }
 	size_type size() const { return node_count; }
 	size_type max_size() const { return size_type(-1); }
+	void swap(my_type& other)
+	{
+		nano::swap(header, other.header);
+		nano::swap(node_count, other.node_count);
+		nano::swap(compare, other.compare);
+	}
 
 public:
 	pair<iterator, bool> insert_unique(const value_type& v)
@@ -393,6 +579,7 @@ public:
 			return pair<iterator, bool>(j, false);
 		}
 	}
+	
 	iterator insert_equal(const value_type& v)
 	{
 		node_ptr y = header;
@@ -400,11 +587,154 @@ public:
 		while (x != 0)
 		{
 			y = x;
-			x = compare(v, x) ? x->left : x->right;
+			x = compare(v, x->value) ? x->left : x->right;
 		}
 		return insert(x, y, v);
 	}
-	void clear();
+	
+	void erase(iterator pos)
+	{
+		delete_node(pos->node);
+	}
+
+	void erase(iterator first, iterator last)
+	{
+		if (first == begin() && last == end())
+			clear();
+		else
+		{
+			for (iterator i = begin(); i != end(); ++i)
+				delete_node(i->node);
+		}
+	}
+
+	size_type erase(const value_type &x)
+	{
+		pair<iterator, iterator> range = equal_range(x);
+		size_t pass = distance(range.first, range.second);
+
+		if (pass == node_count)
+			clear();
+		else
+		{
+			for (size_t i = 0; i < pass; ++i, ++range.first)
+				delete_node(range.first->node);
+		}
+
+		return pass;
+	}
+
+	pair<iterator, iterator> equal_range(const Key& key)
+	{
+		return pair<iterator, iterator>(lower_bound(key), upper_bound(key));
+	}
+
+	pair<iterator, iterator> equal_range(const Key& key) const
+	{
+		pair<const_iterator, const_iterator>(lower_bound(key), upper_bound(key));
+	}
+
+	iterator lower_bound(const Key& key)
+	{
+		node_ptr y = header;
+		node_ptr x = root();
+
+		while (x != 0)
+		{
+			if (!compare(x->value, key))
+			{
+				y = x;
+				x = x->left;
+			}
+			else
+				x = x->right;
+		}
+		return iterator(y);
+	}
+
+	const_iterator lower_bound(const Key& key) const
+	{
+		node_ptr y = header;
+		node_ptr x = root();
+
+		while (x != 0)
+		{
+			if (!compare(x->value, key))
+			{
+				y = x;
+				x = x->left;
+			}
+			else
+				x = x->right;
+		}
+		return const_iterator(y);
+	}
+
+	iterator upper_bound(const Key& key)
+	{
+		node_ptr y = header;
+		node_ptr x = root();
+
+		while (x != 0)
+		{
+			if (compare(x->value, key))
+			{
+				y = x;
+				x = x->left;
+			}
+			else
+				x = x->right;
+		}
+		return iterator(y);
+	}
+
+	const_iterator upper_bound(const Key& key) const
+	{
+		node_ptr y = header;
+		node_ptr x = root();
+
+		while (x != 0)
+		{
+			if (compare(x->value, key))
+			{
+				y = x;
+				x = x->left;
+			}
+			else
+				x = x->right;
+		}
+		return const_iterator(y);
+	}
+
+	size_type count(const Key& key) const
+	{
+		pair<const_iterator, const_iterator> p = equal_range(key);
+		return (size_t)distance(p.first, p.second);
+	}
+
+	iterator find(const Key& key)
+	{
+		iterator j = lower_bound(key);
+		return (j == end() || compare(key, j.node->value)) ? end() : j;
+	}
+
+	const_iterator find(const Key& key) const
+	{
+		const_iterator j = lower_bound(key);
+		return (j == end() || compare(key, j.node->value)) ? end() : j;
+	}
+
+	void clear()
+	{
+		if (node_count != 0)
+		{
+			simple_erase_all(root());
+			leftmost() = header;
+			rightmost() = header;
+			root() = 0;
+			node_count = 0;
+		}
+	}
 };
 
 }

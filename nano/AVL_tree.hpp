@@ -5,7 +5,7 @@
 
 namespace nano {
 
-template< class Key, class Value, class Compare, class Allocator = allocator<Key> >
+template< class Key, class Compare, class Allocator = allocator<Key> >
 class AVL_tree
 {
 

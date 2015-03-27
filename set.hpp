@@ -4,6 +4,7 @@
 #include "memory.hpp"
 #include "iterator.hpp"
 #include "utility.hpp"
+#include "functional.hpp"
 
 #ifdef USE_AVL_TREE
 #include "nano/AVL_tree.hpp"
@@ -13,8 +14,8 @@
 
 namespace nano
 {
-//TODO:default parameter of Compare
-template < class Key, class Compare, class Allocator = nano::allocator<Key> >
+
+template < class Key, class Compare = less<Key>, class Allocator = allocator<Key> >
 class set
 {
 public:
@@ -30,197 +31,207 @@ public:
 	typedef Compare key_compare;
     typedef Compare value_compare;	
 	typedef Allocator allocator_type;
-	typedef typename Allocator::reference reference;
-	typedef typename Allocator::const_reference const_reference;
-	typedef typename Allocator::pointer pointer;
-	typedef typename Allocator::const_pointer const_pointer;
-	typedef nano::iterator<bidirectional_iterator_tag, Key> iterator;
-	typedef nano::iterator<bidirectional_iterator_tag, Key, const Key*, const Key&> const_iterator;
-	typedef nano::reverse_iterator<iterator> reverse_iterator;
-	typedef nano::reverse_iterator<const_iterator> const_reverse_iterator;	
+	typedef typename search_tree::const_reference reference;
+	typedef typename search_tree::const_reference const_reference;
+	typedef typename search_tree::const_pointer pointer;
+	typedef typename search_tree::const_pointer const_pointer;
+	typedef typename search_tree::const_iterator iterator;
+	typedef typename search_tree::const_iterator const_iterator;
+	typedef typename search_tree::const_reverse_iterator reverse_iterator;
+	typedef typename search_tree::const_reverse_iterator const_reverse_iterator;
 	typedef set<Key, Compare, Allocator> my_type;
 
 	set()
 	{
-		//TODO:set constructor
+		
 	}
 
 	~set()
 	{
-		//TODO:set destructor
+		tree.clear();
 	}
 
-	set& operator=(const set& other)
+	my_type& operator=(const my_type& other)
 	{
-		//TODO:set operator=
+		tree = other.tree;
 	}
 
 	allocator_type get_allocator() const
 	{
-		//TODO:set get_allocator const
+		return Allocator();
 	}
 
-	iterator begin()
+	iterator begin() const
 	{
-		//TODO:set begin 
+		return tree.begin();
 	}
 
 	const_iterator begin() const
 	{
-		//TODO:set begin const
+		return tree.begin();
 	}
 
-	iterator end()
+	iterator end() const 
 	{
-		//TODO:set end
+		return tree.end();
 	}
 
 	const_iterator end() const
 	{
-		//TODO:set end const
+		return tree.end();
 	}
 
-	reverse_iterator rbegin()
+	reverse_iterator rbegin() const
 	{
-		//TODO:set rbegin
+		return tree.rbegin();
 	}	
 
 	const_reverse_iterator rbegin() const
 	{
-		//TODO:set rend const
+		return tree.rbegin();
 	}
 
-	reverse_iterator rend()
+	reverse_iterator rend() const
 	{
-		//TODO:set rend
+		return tree.rend();
 	}
 
 	const_reverse_iterator rend() const
 	{
-		//TODO:set rend const
+		return tree.rend();
 	}
 
 	//Capacity
 	void empty() const
 	{
-		//TODO:set empty const
+		return tree.empty();
 	}
 	
 	size_type size() const
 	{
-		//TOD:set size const
+		return tree.size();
 	}
 
 	size_type max_size() const
 	{
-		//TODO:set max_size
+		return tree.max_size();
 	}
 
 	//Modifiers
 	void clear()
 	{
-		//TODO:set clear
+		tree.clear();
 	}
 
 	pair<iterator, bool> insert(const value_type& value)
 	{
-		//TODO:set insert1
+		return tree.insert_unique(value);
 	}
 
 	iterator insert(iterator hint, const value_type& value)
 	{
-		//TODO:set insert2
+		return tree.insert_unique(value);
 	}
 
 	template< class InputIt>
 	void insert(InputIt first, InputIt last)
 	{
-		//TODO:set insert3
+		for (; first != last; ++first)
+			tree.insert_unique(*first);
 	}
 
 	void erase(iterator pos)
 	{
-		//TODO:set erase1
+		tree.erase(pos);
 	}
 
 	void erase(iterator first, iterator last)
 	{
-		//TODO:set erase2
+		tree.erase(first, last);
 	}
 
 	size_type erase(const key_type& key)
 	{
-		//TODO:set erase3
+		tree.erase(key);
 	}
 	
-	void swap(set& other)
+	void swap(my_type& other)
 	{
-		//TODO:set swap
+		tree.swap(other.tree);
 	}
 	
 	//Lookup
 	size_type count(const Key& key) const
 	{
-		//TODO:set count
+		return tree.count();
 	}
 
 	iterator find(const Key& key)
 	{
-		//TODO:set find1
+		return tree.find(key);
 	}
 
 	const_iterator find(const Key& key) const
 	{
-		//TODO:set find2
+		return tree.find(key);
 	}
 
-	nano::pair<iterator, iterator> equal_range(const Key& key)
+	pair<iterator, iterator> equal_range(const Key& key)
 	{
-		//TODO:set equal_range
+		return tree.equal_range(key);
 	}
 
-	nano::pair<const_iterator, const_iterator> equal_range(const Key& key) const
+	pair<const_iterator, const_iterator> equal_range(const Key& key) const
 	{
-		//TODO:set equal_range const
+		return tree.equal_range(key);
 	}
 
 	iterator lower_bound(const Key& key)
 	{
-		//TODO:lower_bound
+		return tree.lower_bound(key);
 	}
 
 	const_iterator lower_bound(const Key& key) const
 	{
-		//TODO:lower_bound const
+		return tree.lower_bound(key);
 	}
 
 	iterator upper_bound(const Key& key)
 	{
-		//TODO:set upper_bound
+		return tree.upper_bound(key);
 	}
 
 	const_iterator upper_bound(const Key& key) const
 	{
-		//TODO:set upper_bound const
+		return tree.upper_bound(key);
 	}
 
 	//Observers
 	key_compare key_comp() const
 	{
-		//TODO:set key_comp const
+		return Compare();
 	}
 
 	value_compare value_comp() const
 	{
-		//TODO:set value_comp
+		return Compare();
 	}
+
+private:
+	search_tree tree;
 };
 
-template< class Key, class Compare, class Allocator = nano::allocator<Key> >
+
+
+template < class Key, class Compare = less<Key>, class Allocator = allocator<Key> >
 class multiset
 {
 public:
-	//Member types
+#ifdef USE_AVL_TREE
+	typedef AVL_tree<Key, Compare, Allocator> search_tree;
+#else
+	typedef rb_tree<Key, Compare, Allocator> search_tree;
+#endif
 	typedef Key key_type;
 	typedef Key value_type;
 	typedef size_t size_type;
@@ -228,206 +239,197 @@ public:
 	typedef Compare key_compare;
 	typedef Compare value_compare;
 	typedef Allocator allocator_type;
-	typedef typename Allocator::reference reference;
-	typedef typename Allocator::const_reference const_reference;
-	typedef typename Allocator::pointer pointer;
-	typedef typename Allocator::const_pointer pointer;
-	typedef nano::iterator<nano::bidirectional_iterator_tag, Key> iterator;
-	typedef nano::iterator<nano::bidirectional_iterator_tag, Key, Key*, Key&> const_iterator;
-	typedef nano::reverse_iterator<iterator> reverse_iterator;
-	typedef nano::reverse_iterator<const_iterator> const_reverse_iterator;
-	
-	//Member functions
-	explicit multiset(const Compare& comp = Compare(), 
-					  const Allocator& alloc = Allocator())	
-	{
-		//TODO:multiset constructor1
-	}
+	typedef typename search_tree::const_reference reference;
+	typedef typename search_tree::const_reference const_reference;
+	typedef typename search_tree::const_pointer pointer;
+	typedef typename search_tree::const_pointer const_pointer;
+	typedef typename search_tree::const_iterator iterator;
+	typedef typename search_tree::const_iterator const_iterator;
+	typedef typename search_tree::const_reverse_iterator reverse_iterator;
+	typedef typename search_tree::const_reverse_iterator const_reverse_iterator;
+	typedef set<Key, Compare, Allocator> my_type;
 
-	template< class InputIt >
-	multiset(InputIt first, InputIt last,
-			 const Compare& comp = Compare(),
-			 const Allocator& alloc = Allocator())
+	multiset()
 	{
-		//TODO:multiset constructor2
-	}
 
-	multiset(const multiset& other)
-	{
-		//TODO:multiset constructor3
 	}
 
 	~multiset()
 	{
-		//TODO:multiset destructor
+		tree.clear();
 	}
 
-	multiset& operator=(const multiset& other)
+	my_type& operator=(const my_type& other)
 	{
-		//TODO:multiset operator=
+		tree = other.tree;
 	}
 
 	allocator_type get_allocator() const
 	{
-		//TODO:multiset get_allocator const
+		return Allocator();
 	}
 
-	//Iterators
-	iterator begin()
+	iterator begin() const
 	{
-		//TODO:multiset begin
+		return tree.begin();
 	}
 
 	const_iterator begin() const
 	{
-		//TODO:multiset begin const
+		return tree.begin();
 	}
-	
-	iterator end()
+
+	iterator end() const
 	{
-		//TODO:multiset end
+		return tree.end();
 	}
 
 	const_iterator end() const
 	{
-		//TODO:multiset end const
+		return tree.end();
 	}
 
-	reverse_iterator rbegin()
+	reverse_iterator rbegin() const
 	{
-		//TODO
+		return tree.rbegin();
 	}
 
 	const_reverse_iterator rbegin() const
 	{
-		//TODO
+		return tree.rbegin();
 	}
 
-	reverse_iterator rend()
+	reverse_iterator rend() const
 	{
-		//TODO
+		return tree.rend();
 	}
 
 	const_reverse_iterator rend() const
 	{
-		//TODO
+		return tree.rend();
 	}
 
 	//Capacity
-	bool empty() const
+	void empty() const
 	{
-		//TODO
+		return tree.empty();
 	}
 
 	size_type size() const
 	{
-		//TODO
+		return tree.size();
 	}
 
 	size_type max_size() const
 	{
-		//TODO
+		return tree.max_size();
 	}
 
-	iterator insert(const value_type& value)
+	//Modifiers
+	void clear()
 	{
-		//TODO
+		tree.clear();
+	}
+
+	pair<iterator, bool> insert(const value_type& value)
+	{
+		return tree.insert_equal(value);
 	}
 
 	iterator insert(iterator hint, const value_type& value)
 	{
-		//TODO
-	}
-	
-	template< class InputIt >
-	void insert(InputIt first, InputIt last)	
-	{
-		//TODO
+		return tree.insert_equal(value);
 	}
 
-	void clear()
+	template< class InputIt>
+	void insert(InputIt first, InputIt last)
 	{
-		//TODO
+		for (; first != last; ++first)
+			tree.insert_equal(*first);
 	}
 
 	void erase(iterator pos)
 	{
-		//TODO
+		tree.erase(pos);
 	}
 
 	void erase(iterator first, iterator last)
 	{
-		//TODO
+		tree.erase(first, last);
 	}
 
 	size_type erase(const key_type& key)
 	{
-		//TODO
+		tree.erase(key);
 	}
 
-	void swap(multiset& other)
+	void swap(my_type& other)
 	{
-		//TODO
+		tree.swap(other.tree);
 	}
 
-	size_type count( const Key& key ) const
+	//Lookup
+	size_type count(const Key& key) const
 	{
-		//TODO
+		return tree.count();
 	}
 
-	iterator find( const Key& key )
+	iterator find(const Key& key)
 	{
-		//TODO
+		return tree.find(key);
 	}
 
-	const_iterator find( const Key& key ) const
+	const_iterator find(const Key& key) const
 	{
-		//TODO
+		return tree.find(key);
 	}
 
-	pair<iterator,iterator> equal_range( const Key& key )
+	pair<iterator, iterator> equal_range(const Key& key)
 	{
-		//TODO
+		return tree.equal_range(key);
 	}
 
-	iterator lower_bound( const Key& key )
+	pair<const_iterator, const_iterator> equal_range(const Key& key) const
 	{
-		//TODO
+		return tree.equal_range(key);
 	}
 
-	const_iterator lower_bound( const Key& key ) const
+	iterator lower_bound(const Key& key)
 	{
-		//TODO
+		return tree.lower_bound(key);
 	}
 
-	iterator upper_bound( const Key& key )
+	const_iterator lower_bound(const Key& key) const
 	{
-		//TODO
+		return tree.lower_bound(key);
 	}
 
-	const_iterator upper_bound( const Key& key ) const
+	iterator upper_bound(const Key& key)
 	{
-		//TODO
+		return tree.upper_bound(key);
 	}
 
-	pair<const_iterator,const_iterator> equal_range( const Key& key ) const
+	const_iterator upper_bound(const Key& key) const
 	{
-		//TODO
+		return tree.upper_bound(key);
 	}
 
+	//Observers
 	key_compare key_comp() const
 	{
-		//TODO
+		return Compare();
 	}
 
 	value_compare value_comp() const
 	{
-		//TODO
+		return Compare();
 	}
 
 private:
 	search_tree tree;
 };
+
+
 
 }
 

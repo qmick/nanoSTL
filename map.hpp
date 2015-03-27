@@ -17,33 +17,33 @@ namespace nano
 {
 
 template< class Key,
-		  class T,
+		  class Value,
 		  class Compare = less<Key>, 
-		  class Allocator = allocator<pair<const Key, T> > > 
+		  class Allocator = allocator<pair<const Key, Value> > >
 class map
 {
 public:
 #ifdef USE_AVL_TREE
-	typedef AVL_tree<Key, T, Compare, Allocator> search_tree;
+	typedef AVL_tree<Key, Value, Compare, Allocator> search_tree;
 #else
-	typedef rb_tree<Key, T, Compare, Allocator> search_tree;
+	typedef rb_tree<Key, Compare, Allocator> search_tree;
 #endif
 	typedef Key key_type;
-	typedef T mapped_type;
-	typedef pair<const Key, T> value_type;
+	typedef Value mapped_type;
+	typedef pair<const Key, Value> value_type;
 	typedef size_t size_type;
 	typedef ptrdiff_t difference_type;
 	typedef Compare key_compare;
 	typedef Allocator allocator_type;
-	typedef typename Allocator::reference reference;
-	typedef typename Allocator::const_reference const_reference;
-	typedef typename Allocator::pointer pointer;
-	typedef typename Allocator::const_pointer const_pointer;
-	typedef nano::iterator<bidirectional_iterator_tag, T> iterator;
-	typedef nano::iterator<bidirectional_iterator_tag, T, const T*, const T&> const_iterator;
-	typedef nano::reverse_iterator<iterator> reverse_iterator;
-	typedef nano::reverse_iterator<const_iterator> const_reverse_iterator;
-	typedef map<Key, T, Compare, Allocator> my_type;
+	typedef typename search_tree::reference reference;
+	typedef typename search_tree::const_reference const_reference;
+	typedef typename search_tree::pointer pointer;
+	typedef typename search_tree::const_pointer const_pointer;
+	typedef typename search_tree::iterator iterator;
+	typedef typename search_tree::const_iterator const_iterator;
+	typedef typename search_tree::rreverse_iterator reverse_iterator;
+	typedef typename search_tree::const_reverse_iterator const_reverse_iterator;
+	typedef map<Key, Value, Compare, Allocator> my_type;
 
 public:
 	map(){}
@@ -51,7 +51,7 @@ public:
 	template< class InputIt >
 	map(InputIt first, InputIt last)
 	{
-		//TODO
+		
 	}
 
 	map(const my_type& other)
@@ -69,7 +69,7 @@ public:
 		return Allocator();
 	}
 
-	T& operator[](const Key& key)
+	Value& operator[](const Key& key)
 	{
 		//TODO
 	}
@@ -208,11 +208,12 @@ public:
 
 private:
 	search_tree tree;
+	Compare comp;
 };
 
-template< class Key, class T, class Compare, class Alloc >
-void swap(map<Key, T, Compare, Alloc>& lhs,
-	map<Key, T, Compare, Alloc>& rhs)
+template< class Key, class Value, class Compare, class Alloc >
+void swap(map<Key, Value, Compare, Alloc>& lhs,
+	map<Key, Value, Compare, Alloc>& rhs)
 {
 
 }
