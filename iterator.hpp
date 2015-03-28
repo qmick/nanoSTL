@@ -104,12 +104,12 @@ public:
 	reference operator*() const
 	{
 		Iterator tmp = current;
-		return *--tmp;
+		return *(--tmp);
 	}
 
 	pointer operator->() const
 	{
-		return nano::addressof(operator*());
+		return &(operator*());
 	}
 
 	//Preincrement
@@ -166,7 +166,45 @@ public:
 	{
 		return (*(*this + n));
 	}
+
+	bool operator<(const my_type& other) const
+	{
+		return current < other.base();
+	}
+
+	bool operator<=(const my_type& other) const
+	{
+		return !(other.base() < current);
+	}
+
+	bool operator>(const my_type& other) const
+	{
+		return other.base() < current;
+	}
+
+	bool operator>=(const my_type& other) const
+	{
+		return !(current < other.base());
+	}
+
+	bool operator==(const my_type& other) const
+	{
+		return current == other.base();
+	}
+
+	bool operator!=(const my_type& other) const
+	{
+		return !(current == other.base());
+	}
 };
+
+template< class It >
+inline typename iterator_traits<It>::value_type
+value_type(const It&)
+{
+	typedef typename iterator_traits<It>::value_type value_type;
+	return value_type();
+}
 
 template< class It >
 inline typename iterator_traits<It>::iterator_category

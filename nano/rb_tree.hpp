@@ -504,10 +504,25 @@ private:
 	}
 
 public:
-	rb_tree(const Compare& comp = Compare())
+	explicit rb_tree(const Compare& comp = Compare())
 		: node_count(0), compare(comp) 
 	{
 		init();
+	}
+
+	rb_tree(const my_type& x)
+		: node_count(0), compare(x.compare)
+	{
+		if (x.root() == 0)
+			init();
+		else
+		{
+			header->color = color_red;
+			root() = copy(x.root(), header);
+			leftmost() = minimun(root());
+			rightmost() = maximum(root());
+		}
+		node_count = x.node_count;
 	}
 
 	~rb_tree()

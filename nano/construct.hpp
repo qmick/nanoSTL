@@ -59,8 +59,9 @@ template< class ForwardIt >
 //Destroy non-POD data
 inline void __destroy(ForwardIt first, ForwardIt last, false_type)
 {
+	typedef typename iterator_traits<ForwardIt>::value_type value_type;
 	for (; first != last; ++first)
-		first->~Value();
+		first->~value_type();
 }
 
 }

@@ -3,15 +3,18 @@
 
 #include "type_traits.hpp"
 #include "construct.hpp"
+#include "../iterator.hpp"
 
 namespace nano {
 
 
 //uninitialized_copy for POD that is continuously stored 
-template< class T1, class T2 >
-inline T2* __uninitialized_copy(T1* first, T1* last, T2* d_first, true_type)
+template< class T >
+inline T* __uninitialized_copy(T* first, T* last, T* d_first, true_type)
 {
-	memmove(d_first, first, last - first);
+	typedef typename iterator_traits<T*>::value_type value_type;
+	if (last > first)
+		memmove(d_first, first, (last - first) * sizeof(value_type));
 	return d_first + (last - first);
 }
 
@@ -45,7 +48,6 @@ inline ForwardIt __uninitialized_copy(InputIt first, InputIt last, ForwardIt d_f
 	catch (...)
 	{
 		destroy(d_first, current);
-		throw;
 	}
 }
 
@@ -74,7 +76,7 @@ inline void __uninitialized_fill(ForwardIt first, ForwardIt last, const T& value
 template< class ForwardIt, class Size, class T >
 inline void __uninitialized_fill_n(ForwardIt first, Size count, const T& value, true_type)
 {
-	typedef typename nano::iterator_traits<ForwardIt>::value_type Value;
+	typedef typename iterator_traits<ForwardIt>::value_type Value;
 	ForwardIt current = first;
 	for (; count > 0; --count, ++current)
 	{
@@ -85,7 +87,7 @@ inline void __uninitialized_fill_n(ForwardIt first, Size count, const T& value, 
 template< class ForwardIt, class Size, class T >
 inline void __uninitialized_fill_n(ForwardIt first, Size count, const T& value, false_type)
 {
-	typedef typename nano::iterator_traits<ForwardIt>::value_type Value;
+	typedef typename iterator_traits<ForwardIt>::value_type Value;
 	ForwardIt current = first;
 	try
 	{
@@ -97,7 +99,6 @@ inline void __uninitialized_fill_n(ForwardIt first, Size count, const T& value, 
 	catch (...)
 	{
 		destroy(first, current);
-		throw;
 	}
 }
 

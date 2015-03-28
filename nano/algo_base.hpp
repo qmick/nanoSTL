@@ -128,7 +128,7 @@ template< class T >
 //Copy content pointed by pointer(continuous data)
 inline T* __copy_r(T *first, T *last, T *d_first)
 {
-	typedef typename type_traits<*first>::has_trivial_assignment_operator htao;
+	typedef typename type_traits<T>::has_trivial_assignment_operator htao;
 	return __copy_r_trivial(first, last, d_first, htao());
 }
 

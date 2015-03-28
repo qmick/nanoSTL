@@ -41,15 +41,17 @@ public:
 	typedef typename search_tree::const_reverse_iterator const_reverse_iterator;
 	typedef set<Key, Compare, Allocator> my_type;
 
-	set()
+	explicit set(Compare comp = Compare()) : tree(comp) {}
+
+	template< class InputIt >
+	set(InputIt first, InputIt last, const Compare& comp = Compare())
+		: tree(comp)
 	{
-		
+		for (; first != last; ++first)
+			tree.insert_unique(*first);
 	}
 
-	~set()
-	{
-		tree.clear();
-	}
+	~set() { tree.clear(); }
 
 	my_type& operator=(const my_type& other)
 	{
@@ -249,10 +251,7 @@ public:
 	typedef typename search_tree::const_reverse_iterator const_reverse_iterator;
 	typedef set<Key, Compare, Allocator> my_type;
 
-	multiset()
-	{
-
-	}
+	multiset(Compare comp = Compare()) : tree(comp) {}
 
 	~multiset()
 	{
