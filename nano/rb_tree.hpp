@@ -11,7 +11,7 @@ const bool color_black = true;
 template< class Value >
 struct rb_tree_node
 {
-	typedef rb_tree_node<T>* node_ptr;
+	typedef rb_tree_node<Value>* node_ptr;
 	bool color;
 	node_ptr parent;
 	node_ptr left;

@@ -248,7 +248,7 @@ public:
 
     iterator erase(iterator pos)
     {
-		if (pos >= my_last && pos < my_last)
+		if (pos >= my_first && pos < my_last)
 		{
 			destroy(pos);
 			copy(pos + 1, my_last, pos);
@@ -273,7 +273,8 @@ public:
     void push_back(const T& value)
     {
 		if (element_count + 1 > capacity())
-			reserve(max(element_count + 1, 2 * element_count));			
+			reserve(max(element_count + 1, 2 * element_count));	
+
 		construct(my_last, value);
 		++my_last;
 		++element_count;
@@ -287,12 +288,11 @@ public:
     }
 
 	void resize(size_type count, T value = T())
-    {
+    {	
 		reserve(count);
 		if (count > element_count)
-		{
-			temp_last = my_last;		
-			uninitialized_fill_n(temp_last, my_first + count, value);
+		{					
+			uninitialized_fill_n(my_first + element_count, count - element_count, value);
 		}
 		else
 		{

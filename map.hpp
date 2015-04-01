@@ -83,8 +83,7 @@ public:
 
 	Value& operator[](const Key& key)
 	{
-		pair<iterator, bool>x = tree.insert_unique(key);
-		return *(x.first);
+		return (*(tree.insert_unique(value_type(key, Value())).first)).second;
 	}
 
 	iterator begin()

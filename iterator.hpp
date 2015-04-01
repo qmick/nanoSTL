@@ -58,9 +58,9 @@ template< class Iterator >
 class reverse_iterator : public iterator <
 	typename iterator_traits<Iterator>::iterator_category,
 	typename iterator_traits<Iterator>::value_type,
-	typename iterator_traits<Iterator>::difference_type,
 	typename iterator_traits<Iterator>::pointer,
-	typename iterator_traits<Iterator>::reference >
+	typename iterator_traits<Iterator>::reference,
+	typename iterator_traits<Iterator>::difference_type >
 {
 protected:
 	Iterator current;
@@ -69,24 +69,14 @@ public:
 	typedef Iterator iterator_type;
 	typedef reverse_iterator<Iterator> my_type;
 
-	reverse_iterator()
-	{
+	reverse_iterator() {}
 
-	}
-
-	explicit reverse_iterator(Iterator x)
-		: current(x)
-	{
-
-	}
+	explicit reverse_iterator(Iterator x) : current(x) {}
 
 	//Copy constructor
 	template< class U >
 	reverse_iterator(const reverse_iterator<U>& other)
-		: current(other.base())
-	{
-
-	}
+		: current(other.base()) {}
 
 	template< class U >
 	reverse_iterator& operator=(const reverse_iterator<U>& other)
