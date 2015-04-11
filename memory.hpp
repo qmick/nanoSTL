@@ -81,7 +81,7 @@ T* __addressof(T& arg)
 template< class InputIt, class ForwardIt >
 ForwardIt uninitialized_copy(InputIt first, InputIt last, ForwardIt d_first)
 {
-	return __uninitialized_copy(first, last, d_first, is_POD_type(first));
+	return __uninitialized_copy(first, last, d_first, is_POD_type(*first));
 }
 
 template< class ForwardIt, class T >

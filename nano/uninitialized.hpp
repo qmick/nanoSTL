@@ -49,6 +49,7 @@ inline ForwardIt __uninitialized_copy(InputIt first, InputIt last, ForwardIt d_f
 	{
 		destroy(d_first, current);
 	}
+	return d_first;
 }
 
 

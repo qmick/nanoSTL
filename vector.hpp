@@ -171,7 +171,8 @@ public:
 			pointer temp_last;
 			try
 			{
-				temp_last = uninitialized_copy(my_first, my_last, temp_first);			
+				temp_last = uninitialized_copy(my_first, my_last, temp_first);	
+				
 			}
 			catch (...)
 			{
