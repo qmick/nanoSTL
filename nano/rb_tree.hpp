@@ -125,7 +125,8 @@ class rb_tree
 public:
 	typedef rb_tree_node<Key> tree_node;
 	typedef tree_node* node_ptr;
-	typedef simple_allocator<tree_node, Allocator> tree_allocator;
+	typedef typename Allocator::template rebind<tree_node>::other node_allocator;
+	typedef typename simple_allocator<tree_node, node_allocator> tree_allocator;
 	typedef Key value_type;
 	typedef Key* pointer;
 	typedef const Key* const_pointer;
@@ -185,16 +186,11 @@ protected:
 		return x;
 	}
 
-	static maximum(node_ptr x)
+	static node_ptr maximum(node_ptr x)
 	{
 		while (x->right != 0)
 			x = x->right;
 		return x;
-	}
-
-	node_ptr& root() const
-	{
-		return (node_ptr&) header->parent;
 	}
 
 	node_ptr& leftmost() const
@@ -283,7 +279,7 @@ private:
 	{
 		while (x != 0)
 		{
-			result = simple_erase_all(x->right);
+			simple_erase_all(x->right);
 			node_ptr y = x->left;
 			destroy_node(x);
 			x = y;

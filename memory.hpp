@@ -13,6 +13,13 @@ template< class T >
 class allocator
 {
 public:
+	template <class T1>
+	struct rebind
+	{
+		typedef allocator<T1> other;
+	};
+
+public:
 	typedef T           value_type;
 	typedef T*          pointer;
 	typedef const T*    const_pointer;
