@@ -23,10 +23,11 @@ template< class Value, class Ref, class Ptr >
 struct rb_tree_iterator
 {
 	typedef rb_tree_node<Value>* node_ptr;
-	typedef bidirectional_iterator_tag iterator_catagory;
-	typedef ptrdiff_t difference_type;
+	typedef bidirectional_iterator_tag iterator_category;
+	typedef Value value_type;
 	typedef Ref reference;
 	typedef Ptr pointer;
+	typedef ptrdiff_t difference_type;
 	typedef rb_tree_iterator<Value, Value&, Value*> iterator;
 	typedef rb_tree_iterator<Value, const Value&, const Value*> const_iterator;
 	typedef rb_tree_iterator<Value, Ref, Ptr> my_type;
@@ -36,6 +37,16 @@ struct rb_tree_iterator
 	rb_tree_iterator() {}
 	rb_tree_iterator(node_ptr x) { node = x; }
 	rb_tree_iterator(const iterator &other) { node = other.node; }
+
+	bool operator==(const my_type& other) const
+	{
+		return node == other.node;
+	}
+
+	bool operator!=(const my_type& other) const
+	{
+		return node != other.node;
+	}
 
 	reference operator*()const
 	{
@@ -83,14 +94,14 @@ struct rb_tree_iterator
 		}
 		else
 		{
-			node_ptr temp = node->parent;
+			node_ptr y = node->parent;
 			while (node == y->right)
 			{
-				node = temp;
-				temp = temp->parent;
+				node = y;
+				y = y->parent;
 			}
-			if (node->right != temp)
-				node = temp;
+			if (node->right != y)
+				node = y;
 		}
 	}
 
@@ -107,13 +118,13 @@ struct rb_tree_iterator
 		}
 		else
 		{
-			node_ptr temp = node->parent;
-			while (temp->right == node)
+			node_ptr y = node->parent;
+			while (y->left == node)
 			{
-				node = temp;
-				temp = temp->parent;
+				node = y;
+				y = y->parent;
 			}
-			node = temp;
+			node = y;
 		}
 		
 	}
@@ -245,7 +256,7 @@ private:
 	iterator insert(node_ptr x, node_ptr y, const value_type& v)
 	{
 		node_ptr z;
-		if (y == header || x != 0 || compare(v, y))
+		if (y == header || x != 0 || compare(v, y->value))
 		{
 			z = create_node(v);
 			y->left = z;
@@ -265,7 +276,7 @@ private:
 				rightmost() = z;
 		}
 
-		z->parent = z;
+		z->parent = y;
 		z->left = 0;
 		z->right = 0;
 
@@ -330,7 +341,7 @@ private:
 	{
 		node_ptr y = x->right;
 		x->right = y->left;
-		if (y > left != 0)
+		if (y->left != 0)
 			y->left->parent = x;
 		y->parent = x->parent;
 
@@ -545,18 +556,42 @@ public:
 	}
 
 public:
-	Compare value_comp() const { return compare; }
-	iterator begin(){ return leftmost(); }
-	const_iterator begin() const { return leftmost(); }
-	iterator end(){ return header; }
-	const_iterator end() const { return header; }
-	reverse_iterator rbegin() { return reverse_iterator(begin()); }
-	const_reverse_iterator rbegin() const { return const_reverse_iterator(begin()); }
-	reverse_iterator rend() { return reverse_iterator(end()); }
-	const_reverse_iterator rend() const { return const_reverse_iterator(end()); }
-	iterator empty() const { return node_count == 0; }
-	size_type size() const { return node_count; }
-	size_type max_size() const { return size_type(-1); }
+	Compare value_comp() const 
+	{ return compare; }
+
+	iterator begin()
+	{ return leftmost(); }
+
+	const_iterator begin() const 
+	{ return leftmost(); }
+
+	iterator end()
+	{ return header; }
+
+	const_iterator end() const 
+	{ return header; }
+
+	reverse_iterator rbegin() 
+	{ return reverse_iterator(end()); }
+
+	const_reverse_iterator rbegin() const 
+	{ return const_reverse_iterator(end()); }
+
+	reverse_iterator rend() 
+	{ return reverse_iterator(begin()); }
+
+	const_reverse_iterator rend() const 
+	{ return const_reverse_iterator(begin()); }
+
+	iterator empty() const 
+	{ return node_count == 0; }
+
+	size_type size() const 
+	{ return node_count; }
+
+	size_type max_size() const 
+	{ return size_type(-1); }
+
 	void swap(my_type& other)
 	{
 		nano::swap(header, other.header);
@@ -574,7 +609,7 @@ public:
 		while (x != 0)
 		{
 			y = x;
-			comp = compare(v, x);
+			comp = compare(v, x->value);
 			x = comp ? x->left : x->right;
 		}
 
@@ -585,10 +620,10 @@ public:
 				return pair<iterator, bool>(insert(x, y, v), true);
 			else
 				--j;
-			if (compare(j.node, v))
-				return pair<iterator, bool>(insert(x, y, v), true);
-			return pair<iterator, bool>(j, false);
 		}
+		if (compare(y->value, v))
+			return pair<iterator, bool>(insert(x, y, v), true);
+		return pair<iterator, bool>(j, false);		
 	}
 	
 	iterator insert_equal(const value_type& v)

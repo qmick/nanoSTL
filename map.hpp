@@ -40,14 +40,14 @@ public:
 			: compare(comp) {}
 		bool operator()(const value_type& lhs, const value_type& rhs) const
 		{
-			return comp(lhs.first, rhs.first);
+			return compare(lhs.first, rhs.first);
 		}
 	};
 
 #ifdef USE_AVL_TREE
 	typedef AVL_tree<Key, Value, Compare, Allocator> search_tree;
 #else
-	typedef rb_tree<Key, comp_pair, Allocator> search_tree;
+	typedef rb_tree<value_type, comp_pair, Allocator> search_tree;
 #endif
 
 	typedef typename search_tree::reference reference;
@@ -63,6 +63,11 @@ public:
 	
 
 public:
+
+	void print_tree()
+	{
+		tree.print_tree();
+	}
 	explicit map(const Compare &comp = Compare()) 
 		: tree(comp_pair(comp)) {}
 
@@ -115,20 +120,20 @@ public:
 
 	reverse_iterator rbegin()
 	{
-		return reverse_iterator(begin());
+		return tree.rbegin();
 	}
 	const_reverse_iterator rbegin() const
 	{
-		return const_reverse_iterator(begin());
+		return tree.rbegin();
 	}
 
 	reverse_iterator rend()
 	{
-		return reverse_iterator(end());
+		return tree.rend();
 	}
 	const_reverse_iterator rend() const
 	{
-		return const_reverse_iterator(end());
+		return tree.rend();
 	}
 
 	bool empty() const
@@ -185,7 +190,7 @@ public:
 
 	iterator find(const Key& key)
 	{
-		return tree.find(key);
+		return tree.find(pair<const Key, Value>(key, Value()));
 	}
 	const_iterator find(const Key& key) const
 	{
@@ -325,20 +330,20 @@ public:
 
 	reverse_iterator rbegin()
 	{
-		return reverse_iterator(begin());
+		return tree.rbegin();
 	}
 	const_reverse_iterator rbegin() const
 	{
-		return const_reverse_iterator(begin());
+		return tree.rbegin();
 	}
 
 	reverse_iterator rend()
 	{
-		return reverse_iterator(end());
+		return tree.end();
 	}
 	const_reverse_iterator rend() const
 	{
-		return const_reverse_iterator(end());
+		return tree.end();
 	}
 
 	bool empty() const

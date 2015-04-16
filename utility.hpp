@@ -15,17 +15,15 @@ struct pair
 	T2 second;
 
 	//member functions
-	pair() 
-	{
-		//TODO:pair constructor1
-	}
+	pair() {}
 	pair(const T1& x, const T2& y)
+		: first(x), second(y)
 	{
-		//TODO:pair constructor2
 	}
 
 	template< class U1, class U2 >
 	pair(const pair<U1, U2>& p)
+		: first(p.first), second(p.second)
 	{
 		//TODO:pair constructor3
 	}

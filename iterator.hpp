@@ -71,7 +71,8 @@ public:
 
 	reverse_iterator() {}
 
-	explicit reverse_iterator(Iterator x) : current(x) {}
+	explicit reverse_iterator(Iterator x) 
+		: current(x) {}
 
 	//Copy constructor
 	template< class U >
