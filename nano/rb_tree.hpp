@@ -22,12 +22,12 @@ struct rb_tree_node
 template< class Value, class Ref, class Ptr >
 struct rb_tree_iterator
 {
-	typedef rb_tree_node<Value>* node_ptr;
 	typedef bidirectional_iterator_tag iterator_category;
 	typedef Value value_type;
 	typedef Ref reference;
 	typedef Ptr pointer;
 	typedef ptrdiff_t difference_type;
+	typedef rb_tree_node<Value>* node_ptr;
 	typedef rb_tree_iterator<Value, Value&, Value*> iterator;
 	typedef rb_tree_iterator<Value, const Value&, const Value*> const_iterator;
 	typedef rb_tree_iterator<Value, Ref, Ptr> my_type;
