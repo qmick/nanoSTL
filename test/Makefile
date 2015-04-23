@@ -1,4 +1,3 @@
-CXX=g++
 CXXFLAGS=-I..
 
 all:map_test vector_test
