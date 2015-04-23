@@ -4,6 +4,7 @@
 #include "type_traits.hpp"
 #include "construct.hpp"
 #include "../iterator.hpp"
+#include <cstring>
 
 namespace nano {
 

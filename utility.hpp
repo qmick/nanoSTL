@@ -25,17 +25,13 @@ struct pair
 	pair(const pair<U1, U2>& p)
 		: first(p.first), second(p.second)
 	{
-		//TODO:pair constructor3
 	}
-
-	pair(const pair& p) = default;
-
 };
 
 template< class T1, class T2 >
 pair<T1, T2> make_pair(T1 t, T2 u)
 {
-	//TODO:make_pair
+	return pair<T1, T2>(t, u);
 }
 
 }

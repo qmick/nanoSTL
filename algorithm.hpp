@@ -5,6 +5,7 @@
 #include "utility.hpp"
 #include "functional.hpp"
 #include "nano/algo_base.hpp"
+#include "nano/type_traits.hpp"
 
 namespace nano {
 
@@ -196,8 +197,8 @@ template< class ForwardIt1, class ForwardIt2 >
 ForwardIt1 search(ForwardIt1 first, ForwardIt1 last,
 	ForwardIt2 s_first, ForwardIt2 s_last)
 {
-	typename type_traits<ForwardIt1>::difference_type d1;
-	typename type_traits<ForwardIt2>::difference_type d2;
+	typedef typename type_traits<ForwardIt1>::difference_type difference_type;
+	difference_type d1, d2;
 	d1 = distance(first, last);
 	d2 = distance(s_first, s_last);
 	if (d1 < d2)
@@ -517,10 +518,10 @@ void rotate(ForwardIt first, ForwardIt middle, ForwardIt last)
 }
 
 template< class ForwardIt, class OutputIt >
-OutputIt rotate_copy(ForwardIt first, ForwardIt n_first,
+OutputIt rotate_copy(ForwardIt first, ForwardIt middle,
 	ForwardIt last, OutputIt d_first)
 {
-	return copy(first, middle, copy(middle, last, d_last));
+	return copy(first, middle, copy(middle, last, d_first));
 }
 
 template< class ForwardIt >
@@ -540,9 +541,9 @@ ForwardIt unique(ForwardIt first, ForwardIt last, BinaryPredicate p)
 template< class InputIt, class OutputIt >
 OutputIt unique_copy(InputIt first, InputIt last, OutputIt d_first)
 {
-	typename iterator_traits<InputIt>::value_type value_type;
+	typedef typename iterator_traits<InputIt>::value_type value_type;
 	return __unique_copy(first, last, d_first, 
-		less<value_type>, iterator_category(first));
+		less<value_type>(), iterator_category(first));
 }
 
 template< class InputIt, class OutputIt, class BinaryPredicate >
@@ -575,7 +576,7 @@ BidIt partition(BidIt first, BidIt last, UnaryPredicate p)
 template< class BidIt, class UnaryPredicate >
 BidIt stable_partition(BidIt first, BidIt last, UnaryPredicate p)
 {
-	
+	//TODO	
 }
 
 

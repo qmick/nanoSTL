@@ -2,6 +2,7 @@
 #define __NANO_ALGO_BASE_HPP__
 
 #include "../iterator.hpp"
+#include "type_traits.hpp"
 
 namespace nano {
 
@@ -10,8 +11,8 @@ inline BidIt1 __find_end(BidIt1 first, BidIt1 last,
 	BidIt2 s_first, BidIt2 s_last,
 	bidirectional_iterator_tag, bidirectional_iterator_tag)
 {
-	typedef typename reverse_iterator<BidIt1> reviter1;
-	typedef typename reverse_iterator<BidIt2> reviter2;
+	typedef reverse_iterator<BidIt1> reviter1;
+	typedef reverse_iterator<BidIt2> reviter2;
 
 	reviter1 rlast(first);
 	reviter2 rs_last(s_first);
@@ -57,8 +58,8 @@ inline BidIt1 __find_end(BidIt1 first, BidIt1 last,
 	BidIt2 s_first, BidIt2 s_last, BinaryPredicate p, 
 	bidirectional_iterator_tag, bidirectional_iterator_tag)
 {
-	typedef typename reverse_iterator<BidIt1> reviter1;
-	typedef typename reverse_iterator<BidIt2> reviter2;
+	typedef reverse_iterator<BidIt1> reviter1;
+	typedef reverse_iterator<BidIt2> reviter2;
 
 	reviter1 rlast(first);
 	reviter2 rs_last(s_first);

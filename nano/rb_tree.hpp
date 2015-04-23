@@ -137,7 +137,7 @@ public:
 	typedef rb_tree_node<Key> tree_node;
 	typedef tree_node* node_ptr;
 	typedef typename Allocator::template rebind<tree_node>::other node_allocator;
-	typedef typename simple_allocator<tree_node, node_allocator> tree_allocator;
+	typedef simple_allocator<tree_node, node_allocator> tree_allocator;
 	typedef Key value_type;
 	typedef Key* pointer;
 	typedef const Key* const_pointer;
@@ -298,7 +298,7 @@ private:
 	}
 
 	//remove a node x and rebalance if neccessary
-	void delete_node(node_ptr x)
+	void delete_node(node_ptr z)
 	{
 		node_ptr y = z;
 		bool y_color = y->color;
@@ -306,7 +306,7 @@ private:
 
 		if (z->left == header)
 		{
-			x = z.right;
+			x = z->right;
 			transplant(z, z->right);
 		}
 		else if (z->right == header)
@@ -316,7 +316,7 @@ private:
 		}
 		else
 		{
-			y = minimun(z.right);
+			y = minimun(z->right);
 			y_color = y->color;
 			x = y->right;
 			if (y->parent == z)

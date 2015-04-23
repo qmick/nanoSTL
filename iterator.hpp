@@ -55,17 +55,17 @@ struct iterator
 };
 
 template< class Iterator >
-class reverse_iterator : public iterator <
-	typename iterator_traits<Iterator>::iterator_category,
-	typename iterator_traits<Iterator>::value_type,
-	typename iterator_traits<Iterator>::pointer,
-	typename iterator_traits<Iterator>::reference,
-	typename iterator_traits<Iterator>::difference_type >
+class reverse_iterator
 {
 protected:
 	Iterator current;
 
 public:
+	typedef typename iterator_traits<Iterator>::iterator_category iterator_category;
+	typedef typename iterator_traits<Iterator>::value_type value_type;
+	typedef typename iterator_traits<Iterator>::pointer pointer;
+	typedef typename iterator_traits<Iterator>::reference reference;
+	typedef typename iterator_traits<Iterator>::difference_type difference_type;
 	typedef Iterator iterator_type;
 	typedef reverse_iterator<Iterator> my_type;
 
@@ -217,7 +217,7 @@ template< class InputIt, class Distance >
 inline void advance(InputIt& it, Distance n)
 {
 	typedef typename iterator_traits<InputIt>::iterator_category category;
-	__advance(it, n, category);
+	__advance(it, n, category());
 }
 
 template< class RanIt, class Distance >

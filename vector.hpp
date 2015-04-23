@@ -308,7 +308,7 @@ public:
 		nano::swap(my_first, other.my_first);
 		nano::swap(my_last, other.my_last);
 		nano::swap(my_end, other.my_end);
-		nano::swap(element_count);
+		nano::swap(element_count, other.element_count);
 	}
 
 	private:
