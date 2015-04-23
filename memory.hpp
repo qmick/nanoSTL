@@ -1,8 +1,8 @@
 #ifndef _MEMORY_HPP_
 #define _MEMORY_HPP_
 #include "iterator.hpp"
-#include "nano\type_traits.hpp"
-#include "nano\uninitialized.hpp"
+#include "nano/type_traits.hpp"
+#include "nano/uninitialized.hpp"
 #include <new>
 #include <cstddef>
 
