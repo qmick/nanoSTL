@@ -247,7 +247,7 @@ public:
 		//TODO
 	}
 
-	terator insert_equal(const value_type& v)
+	iterator insert_equal(const value_type& v)
 	{
 		//TODO
 	}
