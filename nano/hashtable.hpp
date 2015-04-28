@@ -17,11 +17,21 @@ struct list_node
 	Value value;
 };
 
+enum { num_primes = 28 };
+
+static const unsigned long prime_list[num_primes] =
+{
+	53ul, 97ul, 193ul, 389ul, 769ul,
+	1543ul, 3079ul, 6151ul, 12289ul, 24593ul,
+	49157ul, 98317ul, 196613ul, 393241ul, 786433ul,
+	1572869ul, 3145739ul, 6291469ul, 12582917ul, 25165843ul,
+	50331653ul, 100663319ul, 201326611ul, 402653189ul, 805306457ul,
+	1610612741ul, 3221225473ul, 4294967291ul
+};
+
 template< class Value, class KeyEqual, class Hash, class Allocator >
 class hashtable
 {
-	friend class hashtable_iterator<Value, Value&, Value*>;
-	friend class hashtable_const_iterator<Value, Value&, Value*>;
 public:
 	enum{INIT_SIZE = 7};
 	typedef Value value_type;
@@ -30,12 +40,14 @@ public:
 	typedef KeyEqual key_equal;
 	typedef list_node<Value> node;
 	typedef node* node_ptr;
-	typedef hashtable_iterator<Value, Value&, Value*> iterator;
-	typedef hashtable_const_iterator<Value, Value&, Value*> const_iterator;
+	typedef hashtable_iterator<Value, KeyEqual, Hash, Allocator> iterator;
+	typedef hashtable_const_iterator<Value, KeyEqual, Hash, Allocator> const_iterator;
 	typedef typename Allocator::template rebind<node>::other node_allocator;
 	typedef typename simple_allocator<node, node_allocator> hash_allocator;
 	typedef hashtable<Value, KeyEqual, Hash, Allocator> my_type;
 
+	friend class iterator;
+	friend class const_iterator;
 
 private:
 	key_equal equals;
@@ -44,17 +56,28 @@ private:
 	float factor;
 	float max_factor;
 	size_type elements_count;
+	node_ptr first;
+	node_ptr last;
 
 public:
 	explicit hashtable(size_type buckets_count = INIT_SIZE,
-		const Hash& hash = Hash(), 
+		const Hash& hash = Hash(),
 		const KeyEqual& equal = KeyEqual())
-		: hash_func(hash), equals(key_equal), max_factor(1.0)
+		: hash_func(hash), equals(key_equal), 
+		max_factor(1.0), 
+		first(0), 
+		last(0)
 	{
-		buckets.reserve(buckets_count);
+		buckets.assign(buckets_count, 0);
 	}
 
 	hashtable(const my_type& other)
+		: hash_func(other.hash_func), 
+		equals(other.equals), 
+		factor(other.factor), 
+		max_factor(other.max_factor)
+		first(other.start),
+		last(other.end)
 	{
 		//TODO
 	}
@@ -78,22 +101,22 @@ public:
 public:
 	iterator begin()
 	{
-		//TODO
+		return iterator(first, this);
 	}
 
 	const_iterator begin() const
 	{
-		//TODO
+		return const_iterator(first, this);
 	}
 
 	iterator end()
 	{
-		//TODO
+		return iterator(end, this);
 	}
 
 	const_iterator end() const
 	{
-		//TODO
+		return const_iterator(end, this);
 	}
 
 	bool empty() const
@@ -123,33 +146,63 @@ public:
 
 	void clear()
 	{
-		for (int i = 0; i < buckets.size(); ++i)
+		int i = hash_func(first->value);
+		for (; i < buckets.size(); ++i)
 		{
-			clear_bucket(i);
-		}		
+			node_ptr cur = buckets[i];
+			while (cur)
+			{
+				node_ptr temp = cur;
+				cur = cur->next;
+				hash_allocator::deallocate(temp);
+			}
+		}
+		buckets.clear();
 		elements_count = 0;
+		first = 0;
+		last = 0;
 	}
 
 	pair<iterator, bool> insert_unique(const value_type& value)
 	{
-		//TODO
+		int code = hashcode(value);
+		node_ptr cur = buckets[code];
+		if (elements_count / buckets.size() > max_factor)
+			rehash(next_prime(buckets_count() + 1));
+
+		return direct_insert_unique(value);
 	}
 
 	template< class InputIt >
 	void insert_unique(InputIt first, InputIt last)
 	{
-		//TODO
+		size_type d = distance(first, last);
+		size_type new_size = size() + d;
+		if (new_size / buckets.size() > max_factor)
+			rehash(next_prime(new_size));
+		for (; first != last; ++first)
+			direct_insert_unique(*first);
 	}
 
 	iterator insert_equal(const value_type& value)
 	{
-		//TODO
+		int code = hashcode(value);
+		node_ptr cur = buckets[code];
+		if (elements_count / buckets.size() > max_factor)
+			rehash(next_prime(buckets_count() + 1));
+
+		return direct_insert_equal(value);
 	}
 
 	template< class InputIt >
 	void insert_equal(InputIt first, InputIt last)
 	{
-		//TODO
+		size_type d = distance(first, last);
+		size_type new_size = size() + d;
+		if (new_size / buckets.size() > max_factor)
+			rehash(next_prime(new_size));
+		for (; first != last; ++first)
+			direct_insert_equal(*first);
 	}
 
 	iterator erase(iterator pos)
@@ -235,6 +288,11 @@ public:
 		//TODO
 	}
 
+	void reserve(size_type count)
+	{
+		//TODO
+	}
+
 	hasher hash_function() const
 	{
 		return hash_func;
@@ -251,38 +309,102 @@ public:
 	}
 
 private:
-	void clear_bucket(size_type pos)
+	static unsigned long next_prime(unsigned long value)
+	{
+		return *nano::lower_bound(prime_list, prime_list + num_primes, value);
+	}
+
+	node_ptr new_node(const value_type& value)
 	{
 		//TODO
+	}
+
+	void delete_node(node_ptr ptr)
+	{
+		//TODO
+	}
+
+	
+
+	void clear_bucket(node_ptr pos)
+	{
+		if (pos)
+		{
+			clear_bucket(pos->next);
+			delete_node(pos);
+		}
+	}
+
+	//insert_unique without considering load factor
+	pair<iterator, bool> direct_insert_unique(const value_type& value)
+	{
+		size_type n = hashcode(value);
+		node_ptr i = buckets[hashcode(value)];
+		node_ptr temp = i;
+		while (i)
+		{
+			if (equals(i->value, value))
+				return pair<iterator, bool>(i, false);
+			else
+				i = i->next;
+		}
+		buckets[n] = new_node(value);
+		buckets[n]->next = temp;
+		++elements_count;
+		return pair<iterator, bool>(iterator(buckets[n], this), true);
+	}
+
+	//insert_unique without considering load factor
+	pair<iterator, bool> direct_insert_equal(const value_type& value)
+	{
+		size_type n = hashcode(value);
+		node_ptr i = buckets[hashcode(value)];
+		node_ptr temp = i;
+		while (i)
+		{
+			if (equals(i->value, value))
+			{
+				temp = i->next;
+				i->next = new_node(value);
+				i->next->next = temp;
+				++elements_count;
+				return iterator(i->next, this);
+			}
+			else
+				i = i->next;
+		}
+		buckets[n] = new_node(value);
+		buckets[n]->next = temp;
+		++elements_count;
+		return pair<iterator, bool>(iterator(buckets[n], this), true);
 	}
 };
 
 
-template< class Value, class Ref, class Ptr >
+template< class Value, class KeyEqual, class Hash, class Allocator >
 class hashtable_iterator
 {
 public:
 	typedef forward_iterator_tag iterator_category;
 	typedef Value value_type;
-	typedef Ref reference;
-	typedef Ptr pointer;
+	typedef Value& reference;
+	typedef Value* pointer;
 	typedef size_t size_type;
 	typedef ptrdiff_t difference_type;
 	typedef list_node<Value>* node_ptr;
-	typedef hashtable_iterator<Value, Value&, Value*> iterator;
-	typedef hashtable_iterator<Value, Ref, Ptr> my_type;
+	typedef hashtable_iterator<Value, KeyEqual, Hash, Allocator> iterator;
 
 public:
 	hashtable_iterator() {}
 	hashtable_iterator(const node_ptr list_ptr, const hashtable* table)
 		: list_ptr(list_ptr), table(table) {}
 
-	bool operator==(const my_type& other) const
+	bool operator==(const iterator& other) const
 	{
 		return list_ptr == other.list_ptr;
 	}
 
-	bool operator!=(const my_type& other) const
+	bool operator!=(const iterator& other) const
 	{
 		return list_ptr != other.list_ptr;
 	}
@@ -297,7 +419,7 @@ public:
 		return &(operator*());
 	}
 
-	my_type& operator++()
+	iterator& operator++()
 	{
 		if (!list_ptr->next)
 		{
@@ -310,7 +432,7 @@ public:
 		return *this;
 	}
 
-	my_type operator++(int)
+	iterator operator++(int)
 	{
 		my_type self = *this;
 		++(*this);
@@ -319,23 +441,70 @@ public:
 
 private:
 	node_ptr list_ptr;
-	hashtable* table;
+	const hashtable* table;
 };
 
-template< class Value, class Ref, class Ptr >
+template< class Value, class KeyEqual, class Hash, class Allocator >
 class hashtable_const_iterator
-	: public hashtable_iterator< Value, Ref, Ptr >
 {
 public:
-	typedef const Ref reference;
-	typedef const Ptr pointer;
-	typedef hashtable_const_iterator<Value, Value&, Value*> iterator;
-	typedef hashtable_const_iterator<Value, Ref, Ptr> my_type;
+	typedef forward_iterator_tag iterator_category;
+	typedef Value value_type;
+	typedef const Value& reference;
+	typedef const Value* pointer;
+	typedef size_t size_type;
+	typedef ptrdiff_t difference_type;
+	typedef list_node<Value>* node_ptr;
+	typedef hashtable_const_iterator<Value, KeyEqual, Hash, Allocator> iterator;
 
 public:
 	hashtable_const_iterator() {}
 	hashtable_const_iterator(const node_ptr list_ptr, const hashtable* table)
 		: list_ptr(list_ptr), table(table) {}
+
+	bool operator==(const iterator& other) const
+	{
+		return list_ptr == other.list_ptr;
+	}
+
+	bool operator!=(const iterator& other) const
+	{
+		return list_ptr != other.list_ptr;
+	}
+
+	reference operator*()const
+	{
+		return list_ptr->value;
+	}
+
+	pointer operator->() const
+	{
+		return &(operator*());
+	}
+
+	iterator& operator++()
+	{
+		if (!list_ptr->next)
+		{
+			size_type code = table->hashcode(list_ptr->value);
+			while (!list_ptr && ++code < table->buckets[code])
+				list_ptr = table->buckets[code];
+		}
+		else
+			list_ptr = list_ptr->next;
+		return *this;
+	}
+
+	iterator operator++(int)
+	{
+		my_type self = *this;
+		++(*this);
+		return self;
+	}
+
+private:
+	const node_ptr list_ptr;
+	const hashtable* table;
 };
 
 }
