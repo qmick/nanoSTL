@@ -17,6 +17,8 @@ struct list_node
 	Value value;
 };
 
+
+
 enum { num_primes = 28 };
 
 static const unsigned long prime_list[num_primes] =
@@ -53,7 +55,6 @@ private:
 	key_equal equals;
 	hasher hash_func;
 	vector<node_ptr> buckets;
-	float factor;
 	float max_factor;
 	size_type elements_count;
 	node_ptr first;
@@ -63,8 +64,10 @@ public:
 	explicit hashtable(size_type buckets_count = INIT_SIZE,
 		const Hash& hash = Hash(),
 		const KeyEqual& equal = KeyEqual())
-		: hash_func(hash), equals(key_equal), 
+		: hash_func(hash),
+		equals(key_equal),
 		max_factor(1.0), 
+		elements_count(0),
 		first(0), 
 		last(0)
 	{
@@ -72,14 +75,15 @@ public:
 	}
 
 	hashtable(const my_type& other)
-		: hash_func(other.hash_func), 
-		equals(other.equals), 
-		factor(other.factor), 
-		max_factor(other.max_factor)
+		: hash_func(other.hash_func),
+		equals(other.equals),
+		max_factor(other.max_factor),
+		buckets(other.buckets),
+		elements_count(other.elements_count),
 		first(other.start),
 		last(other.end)
 	{
-		//TODO
+		copy_from(other);
 	}
 
 	~hashtable()
@@ -92,9 +96,13 @@ public:
 		clear();
 		hash_func = other.hash_func;
 		equals = other.equals;
-		factor = other.factor;
 		max_factor = other.max_factor;	
-		//TODO
+		elements_count = other.elements_count;		
+		first = other.first;
+		end = other.end;
+
+		buckets.resize(other.buckets.size());
+		copy_from(other);
 	}
 
 
@@ -154,7 +162,7 @@ public:
 			{
 				node_ptr temp = cur;
 				cur = cur->next;
-				hash_allocator::deallocate(temp);
+				delete_node(temp);
 			}
 		}
 		buckets.clear();
@@ -207,25 +215,58 @@ public:
 
 	iterator erase(iterator pos)
 	{
-		//TODO
+		size_type code = hashcode(pos.list_ptr->value);
+		node_ptr target = buckets[code];
+		iterator next(pos);
+
+		++next;
+		if (target == pos.list_ptr)
+		{
+			buckets[code] = target->next;
+			delete_node(target);
+		}
+		else
+		{
+			while (target->next != pos.list_ptr)
+				target = target->next;
+			target->next = target->next->next;
+			delete_node(pos.list_ptr);
+		}
+		return next;
 	}
 
 	iterator erase(iterator first, iterator last)
 	{
-		for (; first != end; ++first)
+		for (; first != last; ++first)
 			erase(first);
+		return last;
 	}
 
 	size_type erase(const value_type& value)
 	{
-		//TODO
+		iterator result = find(value);
+		size_type n = 0;
+		if (result != end())
+		{
+			do
+			{
+				erase(result++);
+				++n;
+			} while (equals(result, value));
+		}
+
+		return n;
 	}
 
 	void swap(my_type& other)
 	{
 		nano::swap(hash_func, other.hash_func);
 		nano::swap(equals, other.equals);
-		//TODO
+		nano::swap(max_factor, other.max_factor);
+		nano::swap(elements_count, other.elements_count);
+		nano::swap(first, other.first);
+		nano::swap(end, other.end);
+		buckets.swap(other.buckets);
 	}
 
 	value_type& at(const value_type& value)
@@ -316,15 +357,32 @@ private:
 
 	node_ptr new_node(const value_type& value)
 	{
-		//TODO
+		node_ptr block = (node_ptr)hash_allocator::allocate();
+		construct(block->value, value);
 	}
 
 	void delete_node(node_ptr ptr)
 	{
-		//TODO
+		destroy(ptr->value);
+		hash_allocator::deallocate(ptr);
 	}
 
-	
+	void copy_from(const my_type& other)
+	{
+		for (int i = 0; i < other.buckets.size(); ++i)
+		{
+			node_ptr cur = other.buckets[i];
+			node_ptr *this_cur = &buckets[i];
+			while (cur)
+			{
+				(*this_cur) = new_node(cur->value);
+				cur = cur->next;
+				this_cur = &(*this_cur)->next;
+			}
+			(*this_cur)->next = 0;
+		}
+
+	}
 
 	void clear_bucket(node_ptr pos)
 	{
@@ -439,7 +497,7 @@ public:
 		return self;
 	}
 
-private:
+public:
 	node_ptr list_ptr;
 	const hashtable* table;
 };
@@ -502,7 +560,7 @@ public:
 		return self;
 	}
 
-private:
+public:
 	const node_ptr list_ptr;
 	const hashtable* table;
 };
