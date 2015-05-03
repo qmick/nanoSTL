@@ -3,6 +3,7 @@
 
 #include "../iterator.hpp"
 #include "../memory.hpp"
+#include "../utility.hpp"
 #include <cstddef>
 
 namespace nano {

@@ -39,8 +39,14 @@ size_t APHash(const char *str)
 	return (hash & 0x7FFFFFFF);
 }
 
-template< string >
+template< class Key >
 struct hash
+{
+
+};
+
+template<>
+struct hash< string >
 {
 	size_t operator()(const string& str)
 	{
@@ -48,8 +54,8 @@ struct hash
 	}
 };
 
-template< char* >
-struct hash
+template<>
+struct hash< char* >
 {
 	size_t operator()(const char* str)
 	{
@@ -57,17 +63,9 @@ struct hash
 	}
 };
 
-template< unsigned char* >
-struct hash
-{
-	size_t operator()(const unsigned char* str)
-	{
-		return BKDRHash((const char*)str);
-	}
-};
 
-template< long >
-struct hash
+template<>
+struct hash< long >
 {
 	long operator()(const long x) const
 	{
@@ -75,8 +73,8 @@ struct hash
 	}
 };
 
-template< unsigned long >
-struct hash
+template<>
+struct hash< unsigned long >
 {
 	unsigned long operator()(const unsigned long x) const
 	{
@@ -84,8 +82,8 @@ struct hash
 	}
 };
 
-template< int >
-struct hash
+template<>
+struct hash< int >
 {
 	int operator()(const int x) const
 	{
@@ -93,8 +91,8 @@ struct hash
 	}
 };
 
-template< unsigned int >
-struct hash
+template<>
+struct hash< unsigned int >
 {
 	unsigned int operator()(const unsigned int x)
 	{
@@ -102,8 +100,8 @@ struct hash
 	}
 };
 
-template< short >
-struct hash
+template<>
+struct hash< short >
 {
 	short operator()(const short x) const
 	{
@@ -111,8 +109,8 @@ struct hash
 	}
 };
 
-template< unsigned short >
-struct hash
+template<>
+struct hash< unsigned short >
 {
 	unsigned short operator()(const unsigned short x) const
 	{
@@ -120,8 +118,8 @@ struct hash
 	}
 };
 
-template< char >
-struct hash
+template<>
+struct hash< char >
 {
 	char operator()(const char x) const
 	{
@@ -129,8 +127,8 @@ struct hash
 	}
 };
 
-template< unsigned char >
-struct hash
+template<>
+struct hash< unsigned char >
 {
 	unsigned char operator()(const unsigned char x) const
 	{

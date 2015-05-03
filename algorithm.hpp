@@ -1,5 +1,5 @@
-#ifndef __ALGORITHM__
-#define __ALGORITHM__
+#ifndef __ALGORITHM_HPP__
+#define __ALGORITHM_HPP__
 
 #include "iterator.hpp"
 #include "utility.hpp"
@@ -10,6 +10,7 @@
 namespace nano {
 
 //Non-modifying sequence operations
+
 template< class InputIt, class UnaryFunction >
 UnaryFunction for_each(InputIt first, InputIt last, UnaryFunction f)
 {
@@ -647,7 +648,27 @@ void nth_element(RanIt first, RanIt nth, RanIt last, Compare comp)
 template< class ForwardIt, class T >
 ForwardIt lower_bound(ForwardIt first, ForwardIt last, const T& value)
 {
-	//TODO
+	typedef typename iterator_traits<ForwardIt>::difference_type difference_type;
+
+	difference_type len, half;
+	ForwardIt mid;
+
+	len = distance(first, last);
+	while (len > 0)
+	{
+		half = len >> 2;
+		mid = first;
+		advance(mid, half);
+		if (*mid < value)
+		{
+			first = mid;
+			++first;
+			len = len - half - 1;
+		}
+		else
+			len = half;
+	}
+	return first;
 }
 
 template< class ForwardIt, class T, class Compare >
@@ -957,4 +978,5 @@ T accumulate(InputIt first, InputIt last, T init, BinaryOperation op)
 }
 
 }
+
 #endif

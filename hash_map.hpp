@@ -11,10 +11,12 @@ template< class Key,
           class Value, 
           class KeyEqual = equal_to<Key>, 
           class Hash = hash<Key>, 
-          class Allocator = allocator<pair<const Key, value> > >
+          class Allocator = allocator<pair<const Key, Value> > >
 class hash_map
 {
 public:
+	typedef Key key_type;
+	typedef Value mapped_type;
 	typedef pair<const Key, Value> value_type;
 	typedef size_t size_type;
 	typedef Hash hasher;
@@ -24,25 +26,31 @@ public:
 	{
 		bool operator()(const value_type& lhs, const value_type& rhs) const
 		{
-			return KeyEqual(lhs.first, rhs.first);
+			return key_equal()(lhs.first, rhs.first);
 		}
 	};
 
-	typedef hashtable<value_type, pair_equal, Hash, Allocator> table;
-	typedef table::reference reference;
-	typedef table::const_reference const_reference;
-	typedef table::pointer pointer;
-	typedef table::const_pointer const_pointer;
-	typedef table::iterator iterator;
-	typedef table::const_iterator const_iterator;
+	struct key_hash
+	{
+		size_type operator()(const value_type& value) const
+		{
+			return hasher()(value.first);
+		}
+	};
+
+	typedef hashtable<value_type, pair_equal, key_hash, Allocator> table;
+	typedef typename table::reference reference;
+	typedef typename table::const_reference const_reference;
+	typedef typename table::pointer pointer;
+	typedef typename table::const_pointer const_pointer;
+	typedef typename table::iterator iterator;
+	typedef typename table::const_iterator const_iterator;
 	typedef hash_map<Key, Value, KeyEqual, Hash, Allocator> my_type;
 
 public:
-	hash_map() {}
-
-	explicit hash_map(size_type buckets_count,
-		const Hash& hash = Hash(),
-		const KeyEqual& equal = KeyEqual())
+	explicit hash_map(size_type buckets_count = 7,
+		const key_hash& hash = key_hash(),
+		const pair_equal& equal = pair_equal())
 		: ht(buckets_count, hash, equal) {}
 
 	hash_map(const my_type& other)
@@ -125,9 +133,9 @@ public:
 		return ht.erase(first, last);
 	}
 
-	size_type erase(const value_type& value)
+	size_type erase(const key_type& key)
 	{
-		return ht.erase(value);
+		return ht.erase(value_type(key, mapped_type()));
 	}
 
 	void swap(const my_type& other)
@@ -135,29 +143,39 @@ public:
 		ht.swap(other.ht);
 	}
 
-	pair<iterator, iterator> equal_range(const value_type& value)
+	mapped_type& at(const key_type& key)
 	{
-		return ht.equal_range(value);
+		return ht.at(value_type(key, mapped_type()));
 	}
 
-	pair<const_iterator, const_iterator> equal_range(const value_type& value) const
+	mapped_type& operator[](const key_type& key)
 	{
-		return ht.equal_range(value);
+		return (*(ht.insert_unique(value_type(key, mapped_type())).first)).second;
 	}
 
-	iterator find(const value_type& value)
+	pair<iterator, iterator> equal_range(const key_type& key)
 	{
-		return ht.find(value);
+		return ht.equal_range(value_type(key, mapped_type()));
 	}
 
-	const_iterator find(const value_type& value) const
+	pair<const_iterator, const_iterator> equal_range(const key_type& key) const
 	{
-		return ht.find(value);
+		return ht.equal_range(value_type(key, mapped_type()));
 	}
 
-	size_type count(const value_type& value) const
+	iterator find(const key_type& key)
 	{
-		return ht.count;
+		return ht.find(value_type(key, value_type()));
+	}
+
+	const_iterator find(const key_type& key) const
+	{
+		return ht.find(value_type(key, value_type()));
+	}
+
+	size_type count(const key_type& key) const
+	{
+		return ht.count(value_type(key, value_type()));
 	}
 
 	float load_factor() const
@@ -197,7 +215,7 @@ public:
 
 
 private:
-	hashtable ht;
+	table ht;
 };
 
 }

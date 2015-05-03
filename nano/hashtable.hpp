@@ -6,6 +6,7 @@
 #include "../memory.hpp"
 #include "../iterator.hpp"
 #include "../vector.hpp"
+#include "../algorithm.hpp"
 
 namespace nano
 {
@@ -46,12 +47,13 @@ public:
 	typedef size_t size_type;
 	typedef ptrdiff_t difference_type;
 	typedef list_node<Value>* node_ptr;
+	typedef hashtable<Value, KeyEqual, Hash, Allocator> table;
 	typedef hashtable_iterator<Value, KeyEqual, Hash, Allocator> iterator;
 
 public:
 	hashtable_iterator() {}
-	hashtable_iterator(const node_ptr list_ptr, const hashtable* table)
-		: list_ptr(list_ptr), table(table) {}
+	hashtable_iterator(const node_ptr list_ptr, const table* ht)
+		: list_ptr(list_ptr), ht(ht) {}
 
 	bool operator==(const iterator& other) const
 	{
@@ -84,7 +86,7 @@ public:
 
 public:
 	node_ptr list_ptr;
-	const hashtable* table;
+	const table* ht;
 };
 
 template< class Value, class KeyEqual, class Hash, class Allocator >
@@ -98,12 +100,16 @@ public:
 	typedef size_t size_type;
 	typedef ptrdiff_t difference_type;
 	typedef list_node<Value>* node_ptr;
+	typedef hashtable_iterator<Value, KeyEqual, Hash, Allocator> non_const_iterator;
+	typedef hashtable<Value, KeyEqual, Hash, Allocator> table;
 	typedef hashtable_const_iterator<Value, KeyEqual, Hash, Allocator> iterator;
 
 public:
 	hashtable_const_iterator() {}
-	hashtable_const_iterator(const node_ptr list_ptr, const hashtable* table)
-		: list_ptr(list_ptr), table(table) {}
+	hashtable_const_iterator(non_const_iterator it)
+		: list_ptr(it.list_ptr), ht(it.ht) {}
+	hashtable_const_iterator(const node_ptr list_ptr, const table* table)
+		: list_ptr(list_ptr), ht(table) {}
 
 	bool operator==(const iterator& other) const
 	{
@@ -136,7 +142,7 @@ public:
 
 public:
 	const node_ptr list_ptr;
-	const hashtable* table;
+	const table* ht;
 };
 
 
@@ -213,7 +219,7 @@ public:
 public:
 	iterator begin()
 	{
-		for (int i = 0; i < buckets.size(); ++i)
+		for (size_type i = 0; i < buckets.size(); ++i)
 			if (buckets[i])
 				return iterator(buckets[i], this);
 		return end();
@@ -223,7 +229,7 @@ public:
 	{
 		for (int i = 0; i < buckets.size(); ++i)
 			if (buckets[i])
-				return iterator(buckets[i], this);
+				return const_iterator(buckets[i], this);
 		return end();
 	}
 
@@ -264,7 +270,7 @@ public:
 
 	void clear()
 	{
-		int i = hash_func(first->value);
+		size_type i = hashcode(*begin());
 		for (; i < buckets.size(); ++i)
 		{
 			node_ptr cur = buckets[i];
@@ -277,8 +283,6 @@ public:
 		}
 		buckets.clear();
 		elements_count = 0;
-		first = 0;
-		last = 0;
 	}
 
 	Pib insert_unique(const value_type& value)
@@ -375,10 +379,25 @@ public:
 		nano::swap(equals, other.equals);
 		nano::swap(max_factor, other.max_factor);
 		nano::swap(elements_count, other.elements_count);
-		nano::swap(first, other.first);
-		nano::swap(end, other.end);
 		buckets.swap(other.buckets);
 	}
+
+	value_type& at(const value_type& value)
+	{
+		size_type n = hashcode(value);
+		node_ptr cur = buckets[n];
+
+		while (cur)
+		{
+			if (equals(cur->value, value))
+				break;
+		}
+		if (!cur)
+			throw std::out_of_range;
+		else
+			return cur->value;
+	}
+
 
 	Pii equal_range(const value_type& value)
 	{
@@ -484,7 +503,7 @@ public:
 		if ((float) size() / max_factor > count )
 			count = (size_type) ceil((float) size() / max_factor);
 		
-		my_type temp(count);
+		my_type temp(count, hash_func, equals);
 		for (iterator i = begin(); i != end(); ++i)
 		{
 			temp.insert_equal(*i);
@@ -509,7 +528,7 @@ public:
 
 	size_type hashcode(const value_type& value) const
 	{
-		return hasher(value);
+		return hash_func(value) % buckets.size();
 	}
 
 private:
@@ -521,12 +540,13 @@ private:
 	node_ptr new_node(const value_type& value)
 	{
 		node_ptr block = (node_ptr)hash_allocator::allocate();
-		construct(block->value, value);
+		construct(&block->value, value);
+		return block;
 	}
 
 	void delete_node(node_ptr ptr)
 	{
-		destroy(ptr->value);
+		destroy(ptr);
 		hash_allocator::deallocate(ptr);
 	}
 
@@ -557,7 +577,7 @@ private:
 	}
 
 	//insert_unique without considering load factor
-	pair<iterator, bool> direct_insert_unique(const value_type& value)
+	Pib direct_insert_unique(const value_type& value)
 	{
 		size_type n = hashcode(value);
 		node_ptr i = buckets[hashcode(value)];
@@ -565,18 +585,18 @@ private:
 		while (i)
 		{
 			if (equals(i->value, value))
-				return pair<iterator, bool>(i, false);
+				return Pib(iterator(i, this), false);
 			else
 				i = i->next;
 		}
 		buckets[n] = new_node(value);
 		buckets[n]->next = temp;
 		++elements_count;
-		return pair<iterator, bool>(iterator(buckets[n], this), true);
+		return Pib(iterator(buckets[n], this), true);
 	}
 
 	//insert_unique without considering load factor
-	pair<iterator, bool> direct_insert_equal(const value_type& value)
+	iterator direct_insert_equal(const value_type& value)
 	{
 		size_type n = hashcode(value);
 		node_ptr i = buckets[hashcode(value)];
@@ -597,7 +617,7 @@ private:
 		buckets[n] = new_node(value);
 		buckets[n]->next = temp;
 		++elements_count;
-		return pair<iterator, bool>(iterator(buckets[n], this), true);
+		return iterator(buckets[n], this);
 	}
 };
 
@@ -607,9 +627,10 @@ hashtable_iterator<Value, KeyEqual, Hash, Allocator>::operator++()
 {
 	if (!list_ptr->next)
 	{
-		size_type code = table->hashcode(list_ptr->value);
-		while (!list_ptr && ++code < table->buckets[code])
-			list_ptr = table->buckets[code];
+		size_type code = ht->hashcode(list_ptr->value);
+		list_ptr = list_ptr->next;
+		while (!list_ptr && ++code < ht->buckets.size())
+			list_ptr = ht->buckets[code];
 	}
 	else
 		list_ptr = list_ptr->next;
@@ -617,8 +638,8 @@ hashtable_iterator<Value, KeyEqual, Hash, Allocator>::operator++()
 }
 
 template< class Value, class KeyEqual, class Hash, class Allocator >
-hashtable_iterator<Value, KeyEqual, Hash, Allocator>&
-hashtable_iterator<Value, KeyEqual, Hash, Allocator>::operator++()
+hashtable_const_iterator<Value, KeyEqual, Hash, Allocator>&
+hashtable_const_iterator<Value, KeyEqual, Hash, Allocator>::operator++()
 {
 	if (!list_ptr->next)
 	{

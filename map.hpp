@@ -94,9 +94,9 @@ public:
 		return Allocator();
 	}
 
-	Value& operator[](const Key& key)
+	value_type& operator[](const key_type& key)
 	{
-		return (*(tree.insert_unique(value_type(key, Value())).first)).second;
+		return (*(tree.insert_unique(value_type(key, mapped_type())).first)).second;
 	}
 
 	iterator begin()
@@ -183,48 +183,48 @@ public:
 		tree.swap(other.tree);
 	}
 
-	size_type count(const Key& key) const
+	size_type count(const key_type& key) const
 	{
-		return tree.count(key);
+		return tree.count(value_type(key, mapped_type()));
 	}
 
-	iterator find(const Key& key)
+	iterator find(const key_type& key)
 	{
-		return tree.find(pair<const Key, Value>(key, Value()));
+		return tree.find(value_type(key, mapped_type()));
 	}
-	const_iterator find(const Key& key) const
+	const_iterator find(const key_type& key) const
 	{
-		return tree.find(key);
-	}
-
-	pair<iterator, iterator> equal_range(const Key& key)
-	{
-		return tree.equal_range(key);
+		return tree.find(value_type(key, mapped_type()));
 	}
 
-	pair<const_iterator, const_iterator> equal_range(const Key& key) const
+	pair<iterator, iterator> equal_range(const key_type& key)
 	{
-		return tree.equal_range(key);
+		return tree.equal_range(value_type(key, mapped_type()));
 	}
 
-	iterator lower_bound(const Key& key)
+	pair<const_iterator, const_iterator> equal_range(const key_type& key) const
 	{
-		return tree.lower_bound(key);
+		return tree.equal_range(value_type(key, mapped_type()));
 	}
 
-	const_iterator lower_bound(const Key& key) const
+	iterator lower_bound(const key_type& key)
 	{
-		return tree.lower_bound(key);
+		return tree.lower_bound(value_type(key, mapped_type()));
 	}
 
-	iterator upper_bound(const Key& key)
+	const_iterator lower_bound(const key_type& key) const
 	{
-		return tree.upper_bound(key);
+		return tree.lower_bound(value_type(key, mapped_type()));
 	}
 
-	const_iterator upper_bound(const Key& key) const
+	iterator upper_bound(const key_type& key)
 	{
-		return tree.upper_bound(key);
+		return tree.upper_bound(value_type(key, mapped_type()));
+	}
+
+	const_iterator upper_bound(const key_type& key) const
+	{
+		return tree.upper_bound(value_type(key, mapped_type()));
 	}
 
 	key_compare key_comp() const
