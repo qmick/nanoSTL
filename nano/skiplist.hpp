@@ -11,11 +11,13 @@ namespace nano {
 template< class Value >
 struct skiplist_node
 {
-
+	skiplist_node<Value> *previous;
+	skiplist_node<Value> *forward[1];
+	Value value;
 };
 
 template< class Value, class Ref, class Ptr >
-struct skiplist_iterator
+struct skiplist_iterator 
 {
 	typedef skiplist_node<Value>* node_ptr;
 	typedef Value value_type;
@@ -25,29 +27,34 @@ struct skiplist_iterator
 	typedef skiplist_iterator<Value, Value&, Value*> iterator;
 	typedef skiplist_iterator<Value, const Value&, const Value*> const_iterator;
 	typedef skiplist_iterator<Value, Ref, Ptr> my_type;
-
-
 };
 
 template< class Key, class Value, class Compare, class Allocator >
 class skiplist
 {
 public:
+	//base type
 	typedef skiplist_node<Key> list_node;
 	typedef list_node* node_ptr;
-	typedef typename Allocator::template rebind<list_node>::other node_allocator;
-	typedef typename simple_allocator<list_node, node_allocator> list_allocator;
-	typedef Key value_type;
+	typedef Key key_type;
+	typedef Value value_type;
 	typedef Key* pointer;
 	typedef const Key* const_pointer;
 	typedef Key& reference;
 	typedef const Key& const_reference;
 	typedef size_t size_type;
 	typedef ptrdiff_t difference_type;
+
+	//iterator
 	typedef skiplist_iterator<value_type, reference, pointer> iterator;
 	typedef skiplist_iterator<value_type, const_reference, const_pointer> const_iterator;
 	typedef nano::reverse_iterator<iterator> reverse_iterator;
 	typedef nano::reverse_iterator<const_iterator> const_reverse_iterator;
+
+	//rebind allocator
+	typedef typename Allocator::template rebind<list_node>::other node_allocator;
+	typedef typename simple_allocator<list_node, node_allocator> list_allocator;
+
 	typedef skiplist<Key, Value, Compare, Allocator> my_type;
 
 public:
