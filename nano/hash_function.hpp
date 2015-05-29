@@ -130,6 +130,7 @@ struct hash< char >
 template<>
 struct hash< unsigned char >
 {
+	temp;
 	unsigned char operator()(const unsigned char x) const
 	{
 		return x;
