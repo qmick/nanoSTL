@@ -29,7 +29,9 @@ build/
 bld/
 [Bb]in/
 [Oo]bj/
+*.swp
 *.out
+*.exe
 
 # Roslyn cache directories
 *.ide/

@@ -16,7 +16,7 @@ struct AVL_tree_node
 	Value value;
 };
 
-template< class Value, class Ref, class Ptr >
+template< class Value, class Ref, class Ptr>
 struct AVL_tree_iterator
 {	
 	typedef bidirectional_iterator_tag iterator_category;
@@ -57,32 +57,6 @@ struct AVL_tree_iterator
 
 	my_type& operator++()
 	{
-		increment();
-		return *this;
-	}
-
-	my_type operator++(int)
-	{
-		my_type self = *this;
-		increment();
-		return self;
-	}
-
-	my_type& operator--()
-	{
-		decrement();
-		return *this;
-	}
-
-	my_type operator--(int)
-	{
-		my_type self = *this;
-		decrement();
-		return self;
-	}
-
-	void increment()
-	{
 		if (node->right != 0)
 		{
 			node = node->right;
@@ -100,9 +74,19 @@ struct AVL_tree_iterator
 			if (node->right != y)
 				node = y;
 		}
+
+		return *this;
 	}
 
-	void decrement()
+	my_type operator++(int)
+	{
+		my_type self = *this;
+		++(*this);
+
+		return self;
+	}
+
+	my_type& operator--()
 	{
 		if (node->color == color_red &&
 			node->parent->parent == node)
@@ -124,28 +108,46 @@ struct AVL_tree_iterator
 			node = y;
 		}
 
+		return *this;
 	}
+
+	my_type operator--(int)
+	{
+		my_type self = *this;
+		--(*this);
+
+		return self;
+	}
+
+
 };
 
-template< class Key, class Compare, class Allocator = allocator<Key> >
+template< class Key, class Value, class Compare, class Allocator = allocator<Key> >
 class AVL_tree
 {
 public:
+	//data type
 	typedef AVL_tree_node<Key> tree_node;
 	typedef tree_node* node_ptr;
-	typedef typename Allocator::template rebind<tree_node>::other node_allocator;
-	typedef typename simple_allocator<tree_node, node_allocator> tree_allocator;
-	typedef Key value_type;
-	typedef Key* pointer;
-	typedef const Key* const_pointer;
-	typedef Key& reference;
-	typedef const Key& const_reference;
+	typedef Key key_type;
+	typedef Value value_type;
+	typedef value_type* pointer;
+	typedef const value_type* const_pointer;
+	typedef value_type& reference;
+	typedef const value_type& const_reference;
 	typedef size_t size_type;
 	typedef ptrdiff_t difference_type;
+
+	//iterator
 	typedef AVL_tree_iterator<value_type, reference, pointer> iterator;
 	typedef AVL_tree_iterator<value_type, const_reference, const_pointer> const_iterator;
 	typedef nano::reverse_iterator<iterator> reverse_iterator;
 	typedef nano::reverse_iterator<const_iterator> const_reverse_iterator;
+
+	//rebind allocator to tree_node
+	typedef typename Allocator::template rebind<tree_node>::other node_allocator;
+	typedef typename simple_allocator<tree_node, node_allocator> tree_allocator;
+
 	typedef AVL_tree<Key, Compare, Allocator> my_type;
 
 public:
@@ -322,6 +324,7 @@ protected:
 	{ return tree_allocator::allocate(); }
 	void put_node(node_ptr p) 
 	{ tree_allocator::deallocate(p); }
+
 	node_ptr create_node(const value_type & x)
 	{
 		node_ptr temp = get_node();

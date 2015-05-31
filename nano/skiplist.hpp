@@ -53,7 +53,7 @@ public:
 
 	//rebind allocator
 	typedef typename Allocator::template rebind<list_node>::other node_allocator;
-	typedef typename simple_allocator<list_node, node_allocator> list_allocator;
+	typedef simple_allocator<list_node, node_allocator> list_allocator;
 
 	typedef skiplist<Key, Value, Compare, Allocator> my_type;
 

@@ -63,11 +63,6 @@ public:
 	
 
 public:
-
-	void print_tree()
-	{
-		tree.print_tree();
-	}
 	explicit map(const Compare &comp = Compare()) 
 		: tree(comp_pair(comp)) {}
 
@@ -76,7 +71,7 @@ public:
 		: tree(comp)
 	{
 		for (; first != last; ++first)
-			tree.insert(*first);
+			tree.insert_unique(*first);
 	}
 
 	map(const my_type& other) : tree(other.tree) {}
@@ -94,7 +89,7 @@ public:
 		return Allocator();
 	}
 
-	value_type& operator[](const key_type& key)
+	mapped_type& operator[](const key_type& key)
 	{
 		return (*(tree.insert_unique(value_type(key, mapped_type())).first)).second;
 	}
@@ -161,21 +156,25 @@ public:
 		return tree.insert_unique(value);
 	}
 
-	iterator insert(iterator hint, const value_type& value)
-	{
-		tree.insert_unique(value);
-	}
-
 	template< class InputIt >
 	void insert(InputIt first, InputIt last)
 	{
 		for (; first != last; ++last)
-			tree.insert(*first);
+			tree.insert_unique(*first);
 	}
 
 	void erase(iterator pos)
 	{
 		tree.erase(pos);
+	}
+
+	void erase(iterator first, iterator last)
+	{
+		while(first != last)
+		{
+			iterator temp = first++;
+			erase(temp);
+		}
 	}
 
 	void swap(my_type& other)
@@ -369,11 +368,6 @@ public:
 	pair<iterator, bool> insert(const value_type& value)
 	{
 		return tree.insert_equal(value);
-	}
-
-	iterator insert(iterator hint, const value_type& value)
-	{
-		tree.insert_equal(value);
 	}
 
 	template< class InputIt >

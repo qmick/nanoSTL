@@ -640,7 +640,7 @@ public:
 	
 	void erase(iterator pos)
 	{
-		delete_node(pos->node);
+		delete_node(pos.node);
 	}
 
 	void erase(iterator first, iterator last)

@@ -40,13 +40,14 @@ template< class Value, class KeyEqual, class Hash, class Allocator >
 class hashtable_iterator
 {
 public:
-	typedef forward_iterator_tag iterator_category;
 	typedef Value value_type;
 	typedef Value& reference;
 	typedef Value* pointer;
 	typedef size_t size_type;
 	typedef ptrdiff_t difference_type;
 	typedef list_node<Value>* node_ptr;
+
+	typedef forward_iterator_tag iterator_category;
 	typedef hashtable<Value, KeyEqual, Hash, Allocator> table;
 	typedef hashtable_iterator<Value, KeyEqual, Hash, Allocator> iterator;
 
@@ -65,7 +66,7 @@ public:
 		return list_ptr != other.list_ptr;
 	}
 
-	reference operator*()const
+	reference operator*() const
 	{
 		return list_ptr->value;
 	}
@@ -93,13 +94,14 @@ template< class Value, class KeyEqual, class Hash, class Allocator >
 class hashtable_const_iterator
 {
 public:
-	typedef forward_iterator_tag iterator_category;
 	typedef Value value_type;
 	typedef const Value& reference;
 	typedef const Value* pointer;
 	typedef size_t size_type;
 	typedef ptrdiff_t difference_type;
 	typedef list_node<Value>* node_ptr;
+
+	typedef forward_iterator_tag iterator_category;
 	typedef hashtable_iterator<Value, KeyEqual, Hash, Allocator> non_const_iterator;
 	typedef hashtable<Value, KeyEqual, Hash, Allocator> table;
 	typedef hashtable_const_iterator<Value, KeyEqual, Hash, Allocator> iterator;
@@ -121,7 +123,7 @@ public:
 		return list_ptr != other.list_ptr;
 	}
 
-	reference operator*()const
+	reference operator*() const
 	{
 		return list_ptr->value;
 	}
@@ -150,6 +152,7 @@ template< class Value, class KeyEqual, class Hash, class Allocator >
 class hashtable
 {
 public:
+	//data type
 	typedef Value value_type;
 	typedef size_t size_type;
 	typedef Hash hasher;
@@ -160,14 +163,20 @@ public:
 	typedef const Value& const_reference;
 	typedef Value* pointer;
 	typedef const Value* const_pointer;
-	typedef hashtable_iterator<Value, KeyEqual, Hash, Allocator> iterator;
-	typedef hashtable_const_iterator<Value, KeyEqual, Hash, Allocator> const_iterator;
-	typedef typename Allocator::template rebind<node>::other node_allocator;
-	typedef typename simple_allocator<node, node_allocator> hash_allocator;
-	typedef hashtable<Value, KeyEqual, Hash, Allocator> my_type;
+
+	//shorter name
 	typedef pair<iterator, iterator> Pii;
 	typedef pair<iterator, bool> Pib;
 	typedef pair<const_iterator, const_iterator> Pcc;
+
+	typedef hashtable_iterator<Value, KeyEqual, Hash, Allocator> iterator;
+	typedef hashtable_const_iterator<Value, KeyEqual, Hash, Allocator> const_iterator;
+	typedef hashtable<Value, KeyEqual, Hash, Allocator> my_type;
+	
+	//rebind allocator
+	typedef typename Allocator::template rebind<node>::other node_allocator;
+	typedef typename simple_allocator<node, node_allocator> hash_allocator;
+
 	friend class iterator;
 	friend class const_iterator;
 
@@ -180,10 +189,16 @@ private:
 
 public:
 	hashtable()
-		: equals(key_equal()), hash_func(hasher()), max_factor(1.0), elements_count(0) {}
+		: equals(key_equal()), 
+		hash_func(hasher()), 
+		max_factor(1.0), 
+		elements_count(0) {}
 
 	hashtable(size_type buckets_count, const Hash& hash, const KeyEqual& equal)
-		: hash_func(hash), equals(key_equal()), max_factor(1.0), elements_count(0)
+		: hash_func(hash), 
+		equals(key_equal()), 
+		max_factor(1.0), 
+		elements_count(0)
 	{
 		buckets.assign(buckets_count, 0);
 	}
@@ -271,6 +286,7 @@ public:
 	void clear()
 	{
 		size_type i = hashcode(*begin());
+
 		for (; i < buckets.size(); ++i)
 		{
 			node_ptr cur = buckets[i];
@@ -289,6 +305,7 @@ public:
 	{
 		int code = hashcode(value);
 		node_ptr cur = buckets[code];
+
 		if (elements_count / buckets.size() > max_factor)
 			rehash(next_prime(buckets_count() + 1));
 
@@ -300,6 +317,7 @@ public:
 	{
 		size_type d = distance(first, last);
 		size_type new_size = size() + d;
+
 		if (new_size / buckets.size() > max_factor)
 			rehash(next_prime(new_size));
 		for (; first != last; ++first)
@@ -310,6 +328,7 @@ public:
 	{
 		int code = hashcode(value);
 		node_ptr cur = buckets[code];
+
 		if (elements_count / buckets.size() > max_factor)
 			rehash(next_prime(buckets_count() + 1));
 
@@ -321,6 +340,7 @@ public:
 	{
 		size_type d = distance(first, last);
 		size_type new_size = size() + d;
+
 		if (new_size / buckets.size() > max_factor)
 			rehash(next_prime(new_size));
 		for (; first != last; ++first)
@@ -403,16 +423,21 @@ public:
 	{
 		const size_type n = hashcode(value);
 		node_ptr first = buckets[n];
+		
 		for (; first; first = first->next)
 		{
+			//find if there is any element equals to value
+			//if yes, it is the begin of this range
 			if (equals(value, first->value))
 			{
 				for (node_ptr second = first->next; second; second = second->next)
 				{
+					//find the end of this range at current bucket
 					if (!equals(second->value, value))
 						return Pii(iterator(first, this), iterator(second, this));
 				}
 
+				//the end if this range is the first element of next non-empty bucket
 				for (size_type i = n + 1; i < buckets.size(); ++i)
 				{
 					if (buckets[i])
@@ -420,13 +445,17 @@ public:
 				}
 			}
 		}
+
+		//no match value found, return empty range
 		return Pii(end(), end());
 	}
 
-	Pcc equal_range(const Value& key) const
+	//const version of equal_range
+	Pcc equal_range(const value_type& key) const
 	{
 		const size_type n = hashcode(value);
 		node_ptr first = buckets[n];
+
 		for (; first; first = first->next)
 		{
 			if (equals(value, first->value))
@@ -450,6 +479,7 @@ public:
 	iterator find(const value_type& value)
 	{
 		const size_type n = hashcode(value);
+
 		for (node_ptr cur = buckets[n]; cur; cur = cur->next)
 		{
 			if (equals(cur->value, value))
@@ -500,20 +530,25 @@ public:
 
 	void rehash(size_type count)
 	{
+		//count should be large enough to contains size() elements
+		//and do not exceed max_factor
 		if ((float) size() / max_factor > count )
 			count = (size_type) ceil((float) size() / max_factor);
 		
+		//construct a new container and re-insert elements one by one
 		my_type temp(count, hash_func, equals);
 		for (iterator i = begin(); i != end(); ++i)
 		{
 			temp.insert_equal(*i);
 		}
 		swap(temp);
+		destroy(&temp);
 	}
 
 	void reserve(size_type count)
 	{
-		rehash(ceil(count / max_load_factor()));
+		if(count > elements_count)
+			rehash(ceil(count / max_load_factor()));
 	}
 
 	hasher hash_function() const
@@ -532,11 +567,13 @@ public:
 	}
 
 private:
+	//find next prime larger than value
 	static unsigned long next_prime(unsigned long value)
 	{
 		return *nano::lower_bound(prime_list, prime_list + num_primes, value);
 	}
 
+	//get a new constructed node
 	node_ptr new_node(const value_type& value)
 	{
 		node_ptr block = (node_ptr)hash_allocator::allocate();
@@ -550,12 +587,16 @@ private:
 		hash_allocator::deallocate(ptr);
 	}
 
+	//copy elements from another hashtable
+	//must make sure these two hashtable 
+	//have the same buckets size
 	void copy_from(const my_type& other)
 	{
 		for (int i = 0; i < other.buckets.size(); ++i)
 		{
 			node_ptr cur = other.buckets[i];
 			node_ptr *this_cur = &buckets[i];
+
 			while (cur)
 			{
 				(*this_cur) = new_node(cur->value);
@@ -567,6 +608,8 @@ private:
 
 	}
 
+	//destroy all elements at a bucket
+	//and deallocate the space
 	void clear_bucket(node_ptr pos)
 	{
 		if (pos)
@@ -582,16 +625,23 @@ private:
 		size_type n = hashcode(value);
 		node_ptr i = buckets[hashcode(value)];
 		node_ptr temp = i;
+
+		//find if there is any element of the same key
 		while (i)
 		{
+			//element of the same key already there,
+			//insertion fail
 			if (equals(i->value, value))
 				return Pib(iterator(i, this), false);
 			else
 				i = i->next;
 		}
 		buckets[n] = new_node(value);
-		buckets[n]->next = temp;
+		
+		//insert element to the head of current bucket
+		buckets[n]->next = temp;  
 		++elements_count;
+
 		return Pib(iterator(buckets[n], this), true);
 	}
 
@@ -601,14 +651,17 @@ private:
 		size_type n = hashcode(value);
 		node_ptr i = buckets[hashcode(value)];
 		node_ptr temp = i;
+
 		while (i)
 		{
 			if (equals(i->value, value))
 			{
+				//insert element after the first element of the same key
 				temp = i->next;
 				i->next = new_node(value);
 				i->next->next = temp;
 				++elements_count;
+
 				return iterator(i->next, this);
 			}
 			else
@@ -617,6 +670,7 @@ private:
 		buckets[n] = new_node(value);
 		buckets[n]->next = temp;
 		++elements_count;
+
 		return iterator(buckets[n], this);
 	}
 };

@@ -63,7 +63,7 @@ public:
 		return Allocator();
 	}
 
-	iterator begin() const
+	iterator begin()
 	{
 		return tree.begin();
 	}
@@ -73,7 +73,7 @@ public:
 		return tree.begin();
 	}
 
-	iterator end() const 
+	iterator end()
 	{
 		return tree.end();
 	}
@@ -83,7 +83,7 @@ public:
 		return tree.end();
 	}
 
-	reverse_iterator rbegin() const
+	reverse_iterator rbegin()
 	{
 		return tree.rbegin();
 	}	
@@ -93,7 +93,7 @@ public:
 		return tree.rbegin();
 	}
 
-	reverse_iterator rend() const
+	reverse_iterator rend() 
 	{
 		return tree.rend();
 	}
@@ -268,7 +268,7 @@ public:
 		return Allocator();
 	}
 
-	iterator begin() const
+	iterator begin() 
 	{
 		return tree.begin();
 	}
@@ -278,7 +278,7 @@ public:
 		return tree.begin();
 	}
 
-	iterator end() const
+	iterator end() 
 	{
 		return tree.end();
 	}
@@ -288,7 +288,7 @@ public:
 		return tree.end();
 	}
 
-	reverse_iterator rbegin() const
+	reverse_iterator rbegin() 
 	{
 		return tree.rbegin();
 	}
@@ -298,7 +298,7 @@ public:
 		return tree.rbegin();
 	}
 
-	reverse_iterator rend() const
+	reverse_iterator rend() 
 	{
 		return tree.rend();
 	}

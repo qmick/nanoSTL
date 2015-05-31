@@ -100,21 +100,21 @@ inline ForwardIt1 __find_end(ForwardIt1 first, ForwardIt1 last,
 	}
 }
 
-template< class RanIt, class OutputIt >
-//Copy content pointed by random access iterator
-inline OutputIt __copy(RanIt first, RanIt last, OutputIt d_first,
-	random_access_iterator_tag)
+template< class T >
+//Copy content pointed by pointer(continuous data) and has trivial assignment operator
+inline T* __copy_r_trivial(const T *first, const T *last, T *d_first, true_type)
 {
-	return __copy_r(first, last, d_first);
+	memmove(d_first, first, sizeof(T) * (last - first));
+	return d_first + (last - first);
 }
 
-template< class InputIt, class OutputIt >
-//Copy content pointed by input iterator
-inline OutputIt __copy(InputIt first, InputIt last, OutputIt d_first,
-	input_iterator_tag)
+template< class T >
+//Copy content pointed by pointer(continuous data) but don't has trivial assignment operator
+inline T* __copy_r_trivial(const T *first, const T *last, T *d_first, false_type)
 {
-	for (; first != last; ++first, ++d_first)
+	for (int i = last - first; i > 0; --i, ++first, ++d_first)
 		*d_first = *first;
+	return d_first;
 }
 
 template< class T >
@@ -142,21 +142,21 @@ inline OutputIt __copy_r(RanIt first, RanIt last, OutputIt d_first)
 	return d_first;
 }
 
-template< class T >
-//Copy content pointed by pointer(continuous data) and has trivial assignment operator
-inline T* __copy_r_trivial(const T *first, const T *last, T *d_first, true_type)
+template< class RanIt, class OutputIt >
+//Copy content pointed by random access iterator
+inline OutputIt __copy(RanIt first, RanIt last, OutputIt d_first,
+	random_access_iterator_tag)
 {
-	memmove(d_first, first, sizeof(T) * (last - first));
-	return d_first + (last - first);
+	return __copy_r(first, last, d_first);
 }
 
-template< class T >
-//Copy content pointed by pointer(continuous data) but don't has trivial assignment operator
-inline T* __copy_r_trivial(const T *first, const T *last, T *d_first, false_type)
+template< class InputIt, class OutputIt >
+//Copy content pointed by input iterator
+inline OutputIt __copy(InputIt first, InputIt last, OutputIt d_first,
+	input_iterator_tag)
 {
-	for (int i = last - first; i > 0; --i, ++first, ++d_first)
+	for (; first != last; ++first, ++d_first)
 		*d_first = *first;
-	return d_first;
 }
 
 template< class RanIt >
@@ -177,18 +177,6 @@ void __reverse(BidirIt first, BidirIt last, bidirectional_iterator_tag)
 			return;
 		else
 			iter_swap(first++, last);
-	}
-}
-
-template< class RanIt, class Distance >
-inline void __rotate(RanIt first, RanIt middle, RanIt last,
-	Distance*, random_access_iterator_tag)
-{
-	typedef typename iterator_traits<RanIt>::value_type value_type;
-	Distance n = __gcd(last - first, middle - first);
-	while (n--)
-	{
-		__rotate_cycle(first, last, first + n, middle - first, value_type());
 	}
 }
 
@@ -220,6 +208,18 @@ void __rotate_cycle(RanIt first, RanIt last, RanIt initial, Distance shift, T*)
 			ptr2 = first + (shift - (last - ptr2));
 	}
 	*ptr1 = value;
+}
+
+template< class RanIt, class Distance >
+inline void __rotate(RanIt first, RanIt middle, RanIt last,
+	Distance*, random_access_iterator_tag)
+{
+	typedef typename iterator_traits<RanIt>::value_type value_type;
+	Distance n = __gcd(last - first, middle - first);
+	while (n--)
+	{
+		__rotate_cycle(first, last, first + n, middle - first, value_type());
+	}
 }
 
 template< class BidIt, class Distance >
