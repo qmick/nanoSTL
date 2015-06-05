@@ -32,8 +32,15 @@ struct AVL_tree_iterator
 	node_ptr node;
 
 	AVL_tree_iterator() {}
-	AVL_tree_iterator(node_ptr x) { node = x; }
-	AVL_tree_iterator(const iterator &other) { node = other.node; }
+	AVL_tree_iterator(node_ptr x) 
+	{ 
+		node = x; 
+	}
+
+	AVL_tree_iterator(const iterator &other) 
+	{ 
+		node = other.node; 
+	}
 
 	bool operator==(const my_type& other) const
 	{
@@ -57,7 +64,7 @@ struct AVL_tree_iterator
 
 	my_type& operator++()
 	{
-		if (node->right != 0)
+		if (node->right != 0) //find minimum of the right
 		{
 			node = node->right;
 			while (node->left != 0)
@@ -122,7 +129,7 @@ struct AVL_tree_iterator
 
 };
 
-template< class Key, class Value, class Compare, class Allocator = allocator<Key> >
+template< class Key, class Value, class Compare, class Allocator = allocator<Value> >
 class AVL_tree
 {
 public:
@@ -154,13 +161,13 @@ public:
 	explicit AVL_tree(const Compare& comp = Compare())
 		: node_count(0), compare(comp)
 	{
-		//TODO
+		init();
 	}
 
-	AVL_tree(const my_type& x)
-		: node_count(0), compare(x.compare)
+	AVL_tree(const my_type& other)
+		: node_count(0), compare(other.compare)
 	{
-		//TODO
+		init();
 	}
 
 	~AVL_tree()
@@ -169,9 +176,11 @@ public:
 		put_node(header);
 	}
 
-	my_type& operator=(const my_type& x)
+	my_type& operator=(const my_type& other)
 	{
-		//TODO
+		clone_tree(root(), other.root());
+		compare = other.compare;
+		node_count = compare.node_count;
 	}
 
 //public interface
@@ -271,86 +280,111 @@ public:
 
 	pair<iterator, iterator> equal_range(const Key& key)
 	{
-		//TODO
+		return pair<iterator, iterator>(lower_bound(key), upper_bound(key));
 	}
 
 	pair<iterator, iterator> equal_range(const Key& key) const
 	{
-		//TODO
+		pair<const_iterator, const_iterator>(lower_bound(key), upper_bound(key));
 	}
 
 	iterator lower_bound(const Key& key)
 	{
-		//TODO
+		node_ptr y = header;
+		node_ptr x = root();
+
+		while (x != 0)
+		{
+			if (!compare(x->value, key))
+			{
+				y = x;
+				x = x->left;
+			}
+			else
+				x = x->right;
+		}
+		return iterator(y);
 	}
 
 	const_iterator lower_bound(const Key& key) const
 	{
-		//TODO
+		node_ptr y = header;
+		node_ptr x = root();
+
+		while (x != 0)
+		{
+			if (!compare(x->value, key))
+			{
+				y = x;
+				x = x->left;
+			}
+			else
+				x = x->right;
+		}
+		return const_iterator(y);
 	}
 
 	iterator upper_bound(const Key& key)
 	{
-		//TODO
+		node_ptr y = header;
+		node_ptr x = root();
+
+		while (x != 0)
+		{
+			if (compare(x->value, key))
+			{
+				y = x;
+				x = x->left;
+			}
+			else
+				x = x->right;
+		}
+		return iterator(y);
 	}
 
 	const_iterator upper_bound(const Key& key) const
 	{
-		//TODO
+		node_ptr y = header;
+		node_ptr x = root();
+
+		while (x != 0)
+		{
+			if (compare(x->value, key))
+			{
+				y = x;
+				x = x->left;
+			}
+			else
+				x = x->right;
+		}
+		return const_iterator(y);
 	}
 
 	size_type count(const Key& key) const
 	{
-		//TODO
+		pair<const_iterator, const_iterator> p = equal_range(key);
+		return (size_t) distance(p.first, p.second);
 	}
 
 	iterator find(const Key& key)
 	{
-		//TODO
+		iterator j = lower_bound(key);
+		return (j == end() || compare(key, j.node->value)) ? end() : j;
 	}
 
 	const_iterator find(const Key& key) const
 	{
-		//TODO
+		const_iterator j = lower_bound(key);
+		return (j == end() || compare(key, j.node->value)) ? end() : j;
 	}
 
 	void clear()
 	{
-		//TODO
-	}
-
-protected:
-	node_ptr get_node() 
-	{ return tree_allocator::allocate(); }
-	void put_node(node_ptr p) 
-	{ tree_allocator::deallocate(p); }
-
-	node_ptr create_node(const value_type & x)
-	{
-		node_ptr temp = get_node();
-		try
-		{
-			construct(&temp->value, x);
-		}
-		catch (...)
-		{
-			put_node(temp);
-		}
-		return temp;
-	}
-
-	node_ptr clone_node(node_ptr x)
-	{
-		node_ptr temp = create_node(x->value);
-		temp->left = 0;
-		temp->right = 0;
-		return temp;
-	}
-
-	void destroy_node(node_ptr p)
-	{
-		destroy(&p->value);
-		put_node(p);
+		destroy_tree(root());		
+		root() = 0;
+		leftmost() = 0;
+		rightmost() = 0;
+		node_count = 0;
 	}
 
 protected:
@@ -358,7 +392,10 @@ protected:
 	node_ptr header;
 	Compare compare;
 
-	node_ptr& root() const { return (node_ptr&) header->parent; }
+	node_ptr& root() const 
+	{ 
+		return (node_ptr&) header->parent; 
+	}
 
 	static node_ptr minimun(node_ptr x)
 	{
@@ -383,7 +420,89 @@ protected:
 	{
 		return (node_ptr&) header->right;
 	}
+	
+
+private:
+	node_ptr get_node()
+	{
+		return tree_allocator::allocate();
+	}
+
+	void put_node(node_ptr p)
+	{
+		tree_allocator::deallocate(p);
+	}
+
+	node_ptr create_node(const value_type & x)
+	{
+		node_ptr temp = get_node();
+		try
+		{
+			construct(&temp->value, x);
+		}
+		catch (...)
+		{
+			put_node(temp);
+			temp = 0;
+		}
+		return temp;
+	}
+
+	node_ptr clone_node(node_ptr x)
+	{
+		node_ptr temp = create_node(x->value);
+		temp->left = 0;
+		temp->right = 0;
+		return temp;
+	}
+
+	void destroy_node(node_ptr p)
+	{
+		destroy(&p->value);
+		put_node(p);
+	}
+
+
+
+	//initialize header
+	void init()
+	{
+		header = get_node();
+		root() = 0;
+		leftmost() = header;
+		rightmost() = header;
+	}
+
+	//copy a tree whose root is 'src' to 'dst'
+	void clone_tree(node_ptr dst, const node_ptr src)
+	{
+		if (dst)
+		{
+			destroy_tree(dst);
+		}
+
+		while (src)
+		{
+			dst = create_node(dst->value);
+			clone_tree(dst->right, src->right);
+			dst = dst->left;
+			src = src->left;
+		}
+	}
+
+	//destroy a tree whose root is 'target'
+	void destroy_tree(node_ptr target)
+	{
+		if (target)
+		{
+			destroy_tree(target->left);
+			destroy_tree(target->right);
+			destroy_node(target);
+		}
+	}
 };
+
+
 
 }
 

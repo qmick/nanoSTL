@@ -5,6 +5,8 @@
 
 namespace nano {
 
+//two hash function for string hash
+
 size_t BKDRHash(const char* str)
 {
 	size_t seed = 131; // 31 131 1313 13131 131313 etc..
@@ -18,7 +20,7 @@ size_t BKDRHash(const char* str)
 	return (hash & 0x7FFFFFFF);
 }
 
-// AP Hash Function
+
 size_t APHash(const char *str)
 {
 	size_t hash = 0;

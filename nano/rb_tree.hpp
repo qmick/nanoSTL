@@ -134,10 +134,9 @@ template< class Key, class Compare, class Allocator >
 class rb_tree
 {
 public:
+	//data type
 	typedef rb_tree_node<Key> tree_node;
 	typedef tree_node* node_ptr;
-	typedef typename Allocator::template rebind<tree_node>::other node_allocator;
-	typedef simple_allocator<tree_node, node_allocator> tree_allocator;
 	typedef Key value_type;
 	typedef Key* pointer;
 	typedef const Key* const_pointer;
@@ -145,13 +144,22 @@ public:
 	typedef const Key& const_reference;
 	typedef size_t size_type;
 	typedef ptrdiff_t difference_type;
+
+	//iterator type
 	typedef rb_tree_iterator<value_type, reference, pointer> iterator;
 	typedef rb_tree_iterator<value_type, const_reference, const_pointer> const_iterator;
 	typedef nano::reverse_iterator<iterator> reverse_iterator;
 	typedef nano::reverse_iterator<const_iterator> const_reverse_iterator;
+
+	//rebind
+	typedef typename Allocator::template rebind<tree_node>::other node_allocator;
+	typedef simple_allocator<tree_node, node_allocator> tree_allocator;
+
 	typedef rb_tree<Key, Compare, Allocator> my_type;
 	
 protected:
+	//operate on node
+
 	node_ptr get_node() { return tree_allocator::allocate(); }
 	void put_node(node_ptr p) { tree_allocator::deallocate(p); }
 	node_ptr create_node(const value_type & x)
@@ -297,7 +305,7 @@ private:
 		}
 	}
 
-	//remove a node x and rebalance if neccessary
+	//remove a node z and rebalance if neccessary
 	void delete_node(node_ptr z)
 	{
 		node_ptr y = z;
