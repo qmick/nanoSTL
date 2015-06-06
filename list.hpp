@@ -19,12 +19,14 @@ class list_iterator
 {
 public:
 	typedef bidirectional_iterator_tag iterator_category;
+
 	typedef Value value_type;
 	typedef Ref reference;
 	typedef Ptr pointer;
 	typedef size_t size_type;
 	typedef ptrdiff_t difference_type;
 	typedef list_node<Value>* node_ptr; node_ptr;
+
 	typedef list_iterator<Value, Value&, Value*> iterator;
 	typedef list_iterator<Value, Ref, Ptr> my_type;
 
