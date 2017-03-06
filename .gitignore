@@ -208,3 +208,5 @@ ModelManifest.xml
 #other
 *.py
 *.pyc
+*.vcxproj
+*.filters
